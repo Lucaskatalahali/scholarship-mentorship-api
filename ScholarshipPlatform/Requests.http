@@ -71,3 +71,32 @@ Content-Type: application/json
 DELETE {{ScholarshipPlatform_HostAddress}}/scholarships/1
 
 ### SCHOLARSHIP APPLICATIONS
+
+POST {{ScholarshipPlatform_HostAddress}}/scholarshipApplications
+Content-Type: application/json
+
+{
+    "UserId": 1,
+    "ScholarshipId": 2
+}
+
+###
+
+GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/1
+
+###
+
+GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications
+
+###
+
+PATCH {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/1
+Content-Type: application/json
+
+{
+    "Status": "ApprOveD"
+}
+
+###
+
+DELETE {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/1

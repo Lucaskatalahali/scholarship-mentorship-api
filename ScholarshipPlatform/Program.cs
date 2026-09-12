@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Users;
 using ScholarshipPlatform.Scholarships;
+using ScholarshipPlatform.ScholarshipApplications;
+using System.Text.Json.Serialization; //pra imprimir a string do enum, e não seu valor int.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,14 @@ builder.Services.
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ScholarshipService>();
+builder.Services.AddScoped<ScholarshipApplicationService>();
+
+
+//Para imprimir o enum como string, e não pelo seu valor int.
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 
 var app = builder.Build();
@@ -42,5 +52,6 @@ using (var scope = app.Services.CreateScope())
 
 app.MapUserEndpoins();
 app.MapScholarshipEndpoints();
+app.MapScholarshipApplicationEndpoints();
 
 app.Run();

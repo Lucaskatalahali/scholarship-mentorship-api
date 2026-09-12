@@ -42,7 +42,7 @@ public class ScholarshipService
 
     public async Task<ScholarshipResponseDto?> GetScholarship(int id)
     {
-        var scholarshipDto = await _db.Scholarships
+        return await _db.Scholarships
         .Where(s => s.Id == id)
         .Select(s => new ScholarshipResponseDto(
             s.Id,
@@ -55,8 +55,6 @@ public class ScholarshipService
             s.RequiredDocuments
         ))
         .FirstOrDefaultAsync();
-
-        return scholarshipDto;
     }
 
     public async Task<List<ScholarshipResponseDto>> GetAllScholarships()
