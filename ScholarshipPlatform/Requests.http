@@ -3,45 +3,75 @@
 ### USERS
 
 POST {{ScholarshipPlatform_HostAddress}}/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZW1haWwiOiJNZW50b3JkYWJvbHNhQGdtYWlsLmNvbSIsIm5hbWUiOiJNZW50b3IgZGEgQm9sc2EiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW50b3IiLCJleHAiOjE3ODkzNDM4MjIsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.QrOLq3oxkkU95a6gHzVBrzwpsHlchMjyYUK3Iq3jmvA
 Content-Type: application/json
 
 {
-    "Name": "Rufino Américo",
-    "Email": "rufino@gmail.com",
-    "Password": "Rufino@0",
+    "Name": "cassoma",
+    "Email": "cassoma@gmail.com",
+    "Password": "Cassoma@0",
     "GPA": 10,
-    "BirthDate": "1999-11-11"
+    "BirthDate": "2004-11-11"
 }
 
 ###
 
-GET {{ScholarshipPlatform_HostAddress}}/users/2
+POST {{ScholarshipPlatform_HostAddress}}/users/login
+Content-Type: application/json
+
+{
+    "Email": "Manuel@gmail.com",
+    "Password": "Manuel@0"
+}
+
+###
+
+GET {{ScholarshipPlatform_HostAddress}}/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZW1haWwiOiJNZW50b3JkYWJvbHNhQGdtYWlsLmNvbSIsIm5hbWUiOiJNZW50b3IgZGEgQm9sc2EiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW50b3IiLCJleHAiOjE3ODkzNDM4MjIsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.QrOLq3oxkkU95a6gHzVBrzwpsHlchMjyYUK3Iq3jmvA
+###
+
+GET {{ScholarshipPlatform_HostAddress}}/users/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 
 ###
 
 GET {{ScholarshipPlatform_HostAddress}}/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiZW1haWwiOiJNYW51ZWxAZ21haWwuY29tIiwibmFtZSI6Ik1hbnVlbCBGdXhpIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiTWVudG9yYW5kbyIsImV4cCI6MTc4OTM1MzEzNCwiaXNzIjoiU2Nob2xhcnNoaXBQbGF0Zm9ybSIsImF1ZCI6IlNjaG9sYXJzaGlwUGxhdGZvcm0ifQ.ISTU8Tu_eY56wslJzlwr4CWSrg1J00R2dV1jtKMQJok
 
 ###
 
-PATCH {{ScholarshipPlatform_HostAddress}}/users/2
+PATCH {{ScholarshipPlatform_HostAddress}}/users/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 Content-Type: application/json
 
 {
-    "Name": "    Lucas Isaac Cassoma"
+    "Name": "Manuel"
 }
 
 ###
 
-DELETE {{ScholarshipPlatform_HostAddress}}/users/2
+PATCH {{ScholarshipPlatform_HostAddress}}/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiZW1haWwiOiJNYW51ZWxAZ21haWwuY29tIiwibmFtZSI6Ik1hbnVlbCBGdXhpIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiTWVudG9yYW5kbyIsImV4cCI6MTc4OTM1MzEzNCwiaXNzIjoiU2Nob2xhcnNoaXBQbGF0Zm9ybSIsImF1ZCI6IlNjaG9sYXJzaGlwUGxhdGZvcm0ifQ.ISTU8Tu_eY56wslJzlwr4CWSrg1J00R2dV1jtKMQJok
+Content-Type: application/json
+
+{
+    "Name": "    Lucas Isaac"
+}
+
+###
+
+DELETE {{ScholarshipPlatform_HostAddress}}/users/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 
 ### SCHOLARSHIPS
 
 POST {{ScholarshipPlatform_HostAddress}}/scholarships
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 Content-Type: application/json
 
 {
-    "Name": "Türkiye Scholarships",
-    "Description": "Türkiye Scholarships is a government-funded scholarship program for international students.",
+    "Name": "Bolsa Roménia",
+    "Description": "Bolsa Unilab is a government-funded scholarship program for international students.",
     "Deadline": "2026-12-12",
     "Eligibility": "Minimum Academic Achievement\n\n- For associate and bachelor's degree candidates: 70%\n- For graduate candidates: 75%\n- For candidates of Health Sciences (Medicine, Dentistry and Pharmacy): 90%\n\nAge Criteria\n\n- For associate and bachelor's degree programmes: Under 21 years of age.\n- For master's programs: under 30 years of age.\n- For PhD programs: under 35 years of age.\n- For Research Scholarship: under 50 years of age.",
     "HowToApply": "Visit the official website or register for our mentorship program so that we can guide you.",
@@ -52,51 +82,62 @@ Content-Type: application/json
 ###
 
 GET {{ScholarshipPlatform_HostAddress}}/scholarships/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiZW1haWwiOiJNYW51ZWxAZ21haWwuY29tIiwibmFtZSI6Ik1hbnVlbCBGdXhpIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiTWVudG9yYW5kbyIsImV4cCI6MTc4OTM1MzEzNCwiaXNzIjoiU2Nob2xhcnNoaXBQbGF0Zm9ybSIsImF1ZCI6IlNjaG9sYXJzaGlwUGxhdGZvcm0ifQ.ISTU8Tu_eY56wslJzlwr4CWSrg1J00R2dV1jtKMQJok
+
 ###
 GET {{ScholarshipPlatform_HostAddress}}/scholarships
 
 ###
 
-PATCH {{ScholarshipPlatform_HostAddress}}/scholarships/1
+PATCH {{ScholarshipPlatform_HostAddress}}/scholarships/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 Content-Type: application/json
 
 {
-    "Name": "Türkiye Scholarships 2",
+    "Name": "Unilab Bolsa",
     "Eligibility": "Minimum Academic Achievement\n\n- For associate and bachelor's degree candidates: 70%\n- For graduate candidates: 75%\n- For candidates of Health Sciences (Medicine, Dentistry and Pharmacy): 90%\n\nAge Criteria\n\n- For associate and bachelor's degree programmes: Under 21 years of age.\n- For master's programs: under 30 years of age.\n- For PhD programs: under 35 years of age.\n- For Research Scholarship: under 50 years of age.",
     "HowToApply": "Visit the official website or register for our mentorship program so that we can guide you.",
-    "OfficialUrl": "https://www.turkiyeburslari.gov.tr/",
+    "OfficialUrl": "",
     "RequiredDocuments": "- ID or passport\n- A photograph of the candidate taken within the last 1 year\n- Transcript\n- Diploma"
 }
 ###
-DELETE {{ScholarshipPlatform_HostAddress}}/scholarships/1
+DELETE {{ScholarshipPlatform_HostAddress}}/scholarships/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 
 ### SCHOLARSHIP APPLICATIONS
 
 POST {{ScholarshipPlatform_HostAddress}}/scholarshipApplications
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZW1haWwiOiJNZW50b3JkYWJvbHNhQGdtYWlsLmNvbSIsIm5hbWUiOiJNZW50b3IgZGEgQm9sc2EiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW50b3IiLCJleHAiOjE3ODkzNTI2MzMsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.L_fIF_tBVvgPMUAp_oB_0O017vdWRlgW6dursxNuo20
 Content-Type: application/json
 
 {
-    "UserId": 1,
-    "ScholarshipId": 2
+    "UserId": 4,
+    "ScholarshipId": 4
 }
 
 ###
 
-GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/1
+GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZW1haWwiOiJNZW50b3JkYWJvbHNhQGdtYWlsLmNvbSIsIm5hbWUiOiJNZW50b3IgZGEgQm9sc2EiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW50b3IiLCJleHAiOjE3ODkzNTI2MzMsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.L_fIF_tBVvgPMUAp_oB_0O017vdWRlgW6dursxNuo20
+
+###
+GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiZW1haWwiOiJNYW51ZWxAZ21haWwuY29tIiwibmFtZSI6Ik1hbnVlbCBGdXhpIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiTWVudG9yYW5kbyIsImV4cCI6MTc4OTM1MzEzNCwiaXNzIjoiU2Nob2xhcnNoaXBQbGF0Zm9ybSIsImF1ZCI6IlNjaG9sYXJzaGlwUGxhdGZvcm0ifQ.ISTU8Tu_eY56wslJzlwr4CWSrg1J00R2dV1jtKMQJok
+###
+GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y
 
 ###
 
-GET {{ScholarshipPlatform_HostAddress}}/scholarshipApplications
-
-###
-
-PATCH {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/1
+PATCH {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZW1haWwiOiJNZW50b3JkYWJvbHNhQGdtYWlsLmNvbSIsIm5hbWUiOiJNZW50b3IgZGEgQm9sc2EiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW50b3IiLCJleHAiOjE3ODkzNTI2MzMsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.L_fIF_tBVvgPMUAp_oB_0O017vdWRlgW6dursxNuo20
 Content-Type: application/json
 
 {
-    "Status": "ApprOveD"
+    "Status": "Rejected"
 }
 
 ###
 
-DELETE {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/1
+DELETE {{ScholarshipPlatform_HostAddress}}/scholarshipApplications/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJjYXNzb21hQGdtYWlsLmNvbSIsIm5hbWUiOiJjYXNzb21hIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3ODkzNTMwMTAsImlzcyI6IlNjaG9sYXJzaGlwUGxhdGZvcm0iLCJhdWQiOiJTY2hvbGFyc2hpcFBsYXRmb3JtIn0.gaSBHqkMfQQpnkN2sFoP43N--QhVpTPo_ObUUG82_8Y

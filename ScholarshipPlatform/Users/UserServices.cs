@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Common;
@@ -8,10 +7,12 @@ namespace ScholarshipPlatform.Users;
 public class UserService
 {
     private readonly UserManager<User> _userManager;
+    private readonly ITokenService _tokenService;
 
-    public UserService(UserManager<User> userManager)
+    public UserService(UserManager<User> userManager, ITokenService tokenService)
     {
         _userManager = userManager;
+        _tokenService = tokenService;
     }
 
     public async Task<ServiceResult<UserResponseDto>> CreateUser(CreateUserDto dto)
@@ -39,7 +40,7 @@ public class UserService
             return ServiceResult<UserResponseDto>.Failure(errors);
         } 
 
-        var roleResult = await _userManager.AddToRoleAsync(user, "Mentorando");
+        var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
 
         if (!roleResult.Succeeded)
         {
@@ -64,7 +65,7 @@ public class UserService
         return ServiceResult<UserResponseDto>.Success(userResponseDto);
     }
 
-    public async Task<UserResponseDto?> GetUser(int id)
+    public async Task<UserResponseDto?> GetUserById(int id)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
 
@@ -79,7 +80,7 @@ public class UserService
         );
     }
 
-    public async Task<List<UserResponseDto>> GetAllUsers()
+    public async Task<List<UserResponseDto>> GetUsers()
     {
         return await _userManager.Users
         .Select(u => new UserResponseDto(
@@ -92,7 +93,7 @@ public class UserService
         ).ToListAsync();
     }
 
-    public async Task<bool> PatchUser(int id, PatchUserDto dto)
+    public async Task<bool> UpdateUser(int id, PatchUserDto dto)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
 
@@ -116,5 +117,20 @@ public class UserService
         var result = await _userManager.DeleteAsync(user);
 
         return result.Succeeded;
+    }
+
+    public async Task<string?> Login(LoginDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if(user is null) return null;
+
+        var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+
+        if(!passwordValid) return null;
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return _tokenService.GenerateToken(user, roles);
     }
 }

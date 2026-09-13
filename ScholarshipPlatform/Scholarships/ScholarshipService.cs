@@ -40,7 +40,7 @@ public class ScholarshipService
         );
     }
 
-    public async Task<ScholarshipResponseDto?> GetScholarship(int id)
+    public async Task<ScholarshipResponseDto?> GetScholarshipById(int id)
     {
         return await _db.Scholarships
         .Where(s => s.Id == id)
@@ -57,7 +57,7 @@ public class ScholarshipService
         .FirstOrDefaultAsync();
     }
 
-    public async Task<List<ScholarshipResponseDto>> GetAllScholarships()
+    public async Task<List<ScholarshipResponseDto>> GetScholarships()
     {
         return await _db.Scholarships
             .Select(s => new ScholarshipResponseDto(
@@ -72,7 +72,7 @@ public class ScholarshipService
             )).ToListAsync();
     }
 
-    public async Task<bool> PatchScholarship(int id, PathScholarshipDto dto)
+    public async Task<bool> UpdateScholarship(int id, PathScholarshipDto dto)
     {
         var scholarship = await _db.Scholarships.FindAsync(id);
 

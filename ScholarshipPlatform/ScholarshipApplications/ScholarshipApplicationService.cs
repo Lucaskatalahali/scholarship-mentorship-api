@@ -79,7 +79,7 @@ public class ScholarshipApplicationService
 
         return ServiceResult<ScholarshipApplicationResponseDto>.Success(scholarshipApplicationResponseDto);
     }
-    public async Task<ScholarshipApplicationResponseDto?> GetScholarshipApplication(int id)
+    public async Task<ScholarshipApplicationResponseDto?> GetScholarshipApplicationById(int id)
     {
         var scholarshipApplicationDto = await _db.ScholarshipApplications
             .Where(s => s.Id == id)
@@ -96,7 +96,7 @@ public class ScholarshipApplicationService
         return scholarshipApplicationDto;
     }
 
-    public async Task<List<ScholarshipApplicationResponseDto>> GetAllScholarshipApplications()
+    public async Task<List<ScholarshipApplicationResponseDto>> GetScholarshipApplications()
     {
         return await _db.ScholarshipApplications
             .Select(s => new ScholarshipApplicationResponseDto(
@@ -110,7 +110,23 @@ public class ScholarshipApplicationService
             )).ToListAsync();
     }
 
-    public async Task<bool> PatchScholarshipApplication(int id, PatchScholarshipApplicationDto dto)
+    //O usuário obtem suas próprias aplicações
+    public async Task<List<ScholarshipApplicationResponseDto>> GetMyScholarshipApplications(int userId)
+    {
+        return await _db.ScholarshipApplications
+            .Where(s => s.UserId == userId)
+            .Select(s => new ScholarshipApplicationResponseDto(
+                s.Id,
+                s.ApplicationDate,
+                s.Status,
+                s.User.Name,
+                s.UserId,
+                s.Scholarship.Name,
+                s.ScholarshipId
+            )).ToListAsync();
+    }
+
+    public async Task<bool> UpdateScholarshipApplication(int id, PatchScholarshipApplicationDto dto)
     {
         var scholarshipApplication = await _db.ScholarshipApplications.FindAsync(id);
 

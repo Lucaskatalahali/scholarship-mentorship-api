@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Npgsql.Replication;
 
 namespace ScholarshipPlatform.ScholarshipApplications;
@@ -8,11 +9,25 @@ public static class ScholarshipApplicationEndpoints
     {
         var group = app.MapGroup("/scholarshipApplications");
 
-        group.MapPost("/", CreateScholarshipApplication);
-        group.MapGet("/{id}", GetScholarshipApplication);
-        group.MapGet("/", GetAllScholarshipApplications);
-        group.MapPatch("/{id}", PatchScholarshipApplication);
-        group.MapDelete("/{id}", DeleteScholarshipApplication);
+        group.MapPost("/", CreateScholarshipApplication)
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+
+        group.MapGet("/{id:int}", GetScholarshipApplicationById)
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor")); 
+
+        //Apenas o Admin tem o poder de ver todas as aplicações do sistema.
+        group.MapGet("/", GetScholarshipApplications)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        //Um usuário pode ver suas próprias aplicações
+        group.MapGet("/me", GetMyScholarshipApplications)
+            .RequireAuthorization();
+
+        group.MapPatch("/{id:int}", UpdateScholarshipApplication)
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+
+        group.MapDelete("/{id:int}", DeleteScholarshipApplication)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         return group;
     }
@@ -33,26 +48,41 @@ public static class ScholarshipApplicationEndpoints
         return TypedResults.Created($"/scholarshipApplications/{result.Data!.Id}", result.Data);
     }
 
-    private static async Task<IResult> GetScholarshipApplication(int id, ScholarshipApplicationService scholarshipApplicationService)
+    private static async Task<IResult> GetScholarshipApplicationById(int id, ScholarshipApplicationService scholarshipApplicationService)
     {
         if(id <= 0)
             return TypedResults.BadRequest("ID must be greater than 0");
 
-        var scholarshipApplicationDto = await scholarshipApplicationService.GetScholarshipApplication(id);
+        var scholarshipApplicationDto = await scholarshipApplicationService.GetScholarshipApplicationById(id);
 
         return scholarshipApplicationDto is null
             ? TypedResults.NotFound()
             : TypedResults.Ok(scholarshipApplicationDto);
     }
 
-    private static async Task<IResult> GetAllScholarshipApplications(ScholarshipApplicationService scholarshipApplicationService)
+    //O usuário obtem suas próprias aplicações
+    private static async Task<IResult> GetMyScholarshipApplications(
+        ClaimsPrincipal user,
+        ScholarshipApplicationService scholarshipApplicationService)
     {
-        var scholarshipApplicationsDto = await scholarshipApplicationService.GetAllScholarshipApplications();
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if(!int.TryParse(userId, out var id))
+            return TypedResults.Unauthorized();
+
+        var myScholarshipApplicationsDto = await scholarshipApplicationService.GetMyScholarshipApplications(id);
+
+        return TypedResults.Ok(myScholarshipApplicationsDto);
+    }
+
+    private static async Task<IResult> GetScholarshipApplications(ScholarshipApplicationService scholarshipApplicationService)
+    {
+        var scholarshipApplicationsDto = await scholarshipApplicationService.GetScholarshipApplications();
 
         return TypedResults.Ok(scholarshipApplicationsDto);
     }
 
-    private static async Task<IResult> PatchScholarshipApplication(
+    private static async Task<IResult> UpdateScholarshipApplication(
         int id, 
         PatchScholarshipApplicationDto dto, 
         ScholarshipApplicationService scholarshipApplicationService)
@@ -60,9 +90,9 @@ public static class ScholarshipApplicationEndpoints
         if(id <= 0) 
             return TypedResults.BadRequest("ID must be greater than 0");
         
-        var result = await scholarshipApplicationService.PatchScholarshipApplication(id, dto);
+        var wasUpdated = await scholarshipApplicationService.UpdateScholarshipApplication(id, dto);
 
-        return result == false
+        return wasUpdated == false
             ? TypedResults.NotFound()
             : TypedResults.NoContent();
     }
@@ -72,9 +102,9 @@ public static class ScholarshipApplicationEndpoints
         if(id <= 0) 
             return TypedResults.BadRequest("ID must be greater than 0");
         
-        var result = await scholarshipApplicationService.DeleteScholarshipApplication(id);
+        var wasDeleted = await scholarshipApplicationService.DeleteScholarshipApplication(id);
 
-        return result == false
+        return wasDeleted == false
             ? TypedResults.NotFound()
             : TypedResults.NoContent();
     }

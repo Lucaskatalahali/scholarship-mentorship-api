@@ -5,7 +5,9 @@ using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Users;
 using ScholarshipPlatform.Scholarships;
 using ScholarshipPlatform.ScholarshipApplications;
-using System.Text.Json.Serialization; //pra imprimir a string do enum, e não seu valor int.
+using System.Text.Json.Serialization;
+using Microsoft.IdentityModel.Tokens; //pra imprimir a string do enum, e não seu valor int.
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +22,32 @@ builder.Services.
     .AddRoles<IdentityRole<int>>()
     .AddEntityFrameworkStores<AppDbContext>();
 
+// Esta API vai usar o esquema Bearer para autenticação e JWT Bearer para processar os tokens.
+builder.Services
+    .AddAuthentication("Bearer")
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            )
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ScholarshipService>();
 builder.Services.AddScoped<ScholarshipApplicationService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 
 //Para imprimir o enum como string, e não pelo seu valor int.
@@ -34,6 +59,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+
+//Começar o app com as Roles
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider
@@ -50,7 +80,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.MapUserEndpoins();
+app.MapUserEndpoints();
 app.MapScholarshipEndpoints();
 app.MapScholarshipApplicationEndpoints();
 

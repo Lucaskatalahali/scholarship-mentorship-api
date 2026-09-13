@@ -6,11 +6,19 @@ public static class ScholarshipEndpoins
     {
         var group = app.MapGroup("/scholarships");
 
-        group.MapPost("/", CreateScholarship);
-        group.MapGet("/{id}", GetScholarship);
-        group.MapGet("/", GetAllScholarships);
-        group.MapPatch("/{id}", PatchScholarship);
-        group.MapDelete("/{id}", DeleteScholarship);
+        group.MapPost("/", CreateScholarship)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        group.MapGet("/{id:int}", GetScholarshipById)
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+
+        group.MapGet("/", GetScholarships);
+
+        group.MapPatch("/{id:int}", UpdateScholarship)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        group.MapDelete("/{id:int}", DeleteScholarship)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         return group;
     }
@@ -30,11 +38,11 @@ public static class ScholarshipEndpoins
         return TypedResults.Created($"/scholarships/{responseDto.Id}", responseDto);
     }
 
-    private static async Task<IResult> GetScholarship(int id, ScholarshipService scholarshipService)
+    private static async Task<IResult> GetScholarshipById(int id, ScholarshipService scholarshipService)
     {
         if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
 
-        var scholarshipDto = await scholarshipService.GetScholarship(id);
+        var scholarshipDto = await scholarshipService.GetScholarshipById(id);
 
 
         return scholarshipDto is null
@@ -42,14 +50,14 @@ public static class ScholarshipEndpoins
             :TypedResults.Ok(scholarshipDto);
     }
 
-    private static async Task<IResult> GetAllScholarships(ScholarshipService scholarshipService)
+    private static async Task<IResult> GetScholarships(ScholarshipService scholarshipService)
     {
-        var scholarshipsDto = await scholarshipService.GetAllScholarships();
+        var scholarshipsDto = await scholarshipService.GetScholarships();
 
         return TypedResults.Ok(scholarshipsDto);
     }
 
-    private static async Task<IResult> PatchScholarship(
+    private static async Task<IResult> UpdateScholarship(
         int id, 
         PathScholarshipDto dto, 
         PathScholarshipDtoValidator validator, 
@@ -61,9 +69,9 @@ public static class ScholarshipEndpoins
 
         if(!validationResult.IsValid) return TypedResults.ValidationProblem(validationResult.ToDictionary());
 
-        var wasPatched = await scholarshipService.PatchScholarship(id, dto);
+        var wasUpdated = await scholarshipService.UpdateScholarship(id, dto);
 
-        return wasPatched
+        return wasUpdated
             ? TypedResults.NoContent()
             : TypedResults.NotFound();
     }

@@ -1,21 +1,43 @@
+using System.Security.Claims;
+
 namespace ScholarshipPlatform.Users;
 
 public static class UserEndpoints
 {
-    public static RouteGroupBuilder MapUserEndpoins(this WebApplication app)
+    public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/users");
 
-        group.MapGet("/{id}", GetUser);
-        group.MapGet("/", GetAllUsers);
+        group.MapGet("/", GetUsers)
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+        
+        group.MapGet("/{id:int}", GetUserById)
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+
+        group.MapGet("/me", GetCurrentUser)
+            .RequireAuthorization();
+
         group.MapPost("/", CreateUser);
-        group.MapPatch("/{id}", PatchUser);   
-        group.MapDelete("/{id}", DeleteUser);
+
+        group.MapPatch("/{id:int}", UpdateUser)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));   
+
+        group.MapPatch("/me", UpdateCurrentUser)
+            .RequireAuthorization();
+
+        //Apenas Admin pode remover um usuário
+        group.MapDelete("/{id:int}", DeleteUser)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        group.MapPost("/login", Login);
 
         return group;    
     }
 
-    private static async Task<IResult> CreateUser(CreateUserDto dto, CreateUserDtoValidator validator, UserService userService)
+    private static async Task<IResult> CreateUser(
+        CreateUserDto dto, 
+        CreateUserDtoValidator validator, 
+        UserService userService)
     {
         var validationResult = await validator.ValidateAsync(dto);
 
@@ -32,25 +54,45 @@ public static class UserEndpoints
         return TypedResults.Created($"/users/{result.Data!.Id}", result.Data); //Data is userDto
     }
 
-    private static async Task<IResult> GetUser(int id, UserService userService)
+    private static async Task<IResult> GetUserById(int id, UserService userService)
     {
         if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
 
-        var userDto = await userService.GetUser(id);
+        var userDto = await userService.GetUserById(id);
 
         return userDto is null
             ? TypedResults.NotFound()
             : TypedResults.Ok(userDto);
     }
 
-    private static async Task<IResult> GetAllUsers(UserService userService)
-    {
-        var usersDto = await userService.GetAllUsers();
+private static async Task<IResult> GetCurrentUser(
+    ClaimsPrincipal user, 
+    UserService userService)
+{
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
+    if (!int.TryParse(userId, out var id))
+        return TypedResults.Unauthorized();
+
+    var userDto = await userService.GetUserById(id);
+
+    return userDto is null
+        ? TypedResults.NotFound()
+        : TypedResults.Ok(userDto);
+}
+
+    private static async Task<IResult> GetUsers(UserService userService)
+    {
+        var usersDto = await userService.GetUsers();
         return TypedResults.Ok(usersDto);
     }
 
-    private static async Task<IResult> PatchUser(int id, PatchUserDto dto, PatchUserDtoValidator validator, UserService userService)
+    //O Admin edita as infos do usuário
+    private static async Task<IResult> UpdateUser(
+        int id, 
+        PatchUserDto dto, 
+        PatchUserDtoValidator validator, 
+        UserService userService)
     {
         if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
 
@@ -59,9 +101,33 @@ public static class UserEndpoints
         if(!validationResult.IsValid)
             return TypedResults.ValidationProblem(validationResult.ToDictionary());
 
-        var WasUpdated = await userService.PatchUser(id, dto);
+        var wasUpdated = await userService.UpdateUser(id, dto);
 
-        return WasUpdated
+        return wasUpdated
+            ? TypedResults.NoContent()
+            : TypedResults.NotFound();
+    }
+
+    //O usuário edita suas próprias informações
+    private static async Task<IResult> UpdateCurrentUser(
+        ClaimsPrincipal user,
+        PatchUserDto dto, 
+        PatchUserDtoValidator validator,
+        UserService userService)
+    {
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if(!int.TryParse(userId, out var id))
+            return TypedResults.Unauthorized();   
+
+        var validationResult = await validator.ValidateAsync(dto);
+
+        if(!validationResult.IsValid)
+            return TypedResults.ValidationProblem(validationResult.ToDictionary());
+
+        var wasUpdated = await userService.UpdateUser(id, dto);
+
+        return wasUpdated
             ? TypedResults.NoContent()
             : TypedResults.NotFound();
     }
@@ -75,5 +141,22 @@ public static class UserEndpoints
         return wasDeleted
             ? TypedResults.NoContent()
             : TypedResults.NotFound();
+    }
+
+    private static async Task<IResult> Login(
+        LoginDto dto, 
+        LoginDtoValidator validator,
+        UserService userService)
+    {
+        var validationResult = await validator.ValidateAsync(dto);
+
+        if(!validationResult.IsValid)
+            return TypedResults.ValidationProblem(validationResult.ToDictionary());
+
+        var token = await userService.Login(dto);
+
+        return token is null
+            ? TypedResults.Unauthorized()
+            : TypedResults.Ok(new LoginResponseDto(token));
     }
 }
