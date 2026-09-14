@@ -8,6 +8,7 @@ using ScholarshipPlatform.ScholarshipApplications;
 using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Tokens; //pra imprimir a string do enum, e não seu valor int.
 using System.Text;
+using ScholarshipPlatform.Payments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ScholarshipService>();
 builder.Services.AddScoped<ScholarshipApplicationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<PaymentService>();
 
 
 //Para imprimir o enum como string, e não pelo seu valor int.
@@ -83,5 +85,6 @@ using (var scope = app.Services.CreateScope())
 app.MapUserEndpoints();
 app.MapScholarshipEndpoints();
 app.MapScholarshipApplicationEndpoints();
+app.MapPaymentEndpoints();
 
 app.Run();

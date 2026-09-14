@@ -15,7 +15,7 @@ public class UserService
         _tokenService = tokenService;
     }
 
-    public async Task<ServiceResult<UserResponseDto>> CreateUser(CreateUserDto dto)
+    public async Task<ServiceResult<UserResponseDto>> RegisterUser(CreateUserDto dto)
     {
         var user = new User
         {

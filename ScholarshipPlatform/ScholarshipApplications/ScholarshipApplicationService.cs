@@ -87,7 +87,7 @@ public class ScholarshipApplicationService
                 s.Id,
                 s.ApplicationDate,
                 s.Status,
-                s.User == null ? null : s.User.Name,//aqui ainda tem sinal amarelo
+                s.User == null ? null : s.User.Name,
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId

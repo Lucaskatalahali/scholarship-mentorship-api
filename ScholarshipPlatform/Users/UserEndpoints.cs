@@ -17,7 +17,7 @@ public static class UserEndpoints
         group.MapGet("/me", GetCurrentUser)
             .RequireAuthorization();
 
-        group.MapPost("/", CreateUser);
+        group.MapPost("/", RegisterUser);
 
         group.MapPatch("/{id:int}", UpdateUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));   
@@ -31,10 +31,12 @@ public static class UserEndpoints
 
         group.MapPost("/login", Login);
 
+        //GET /users/{userId}/payments;
+
         return group;    
     }
 
-    private static async Task<IResult> CreateUser(
+    private static async Task<IResult> RegisterUser(
         CreateUserDto dto, 
         CreateUserDtoValidator validator, 
         UserService userService)
@@ -44,7 +46,7 @@ public static class UserEndpoints
         if(!validationResult.IsValid)
             return  TypedResults.ValidationProblem(validationResult.ToDictionary());
 
-        var result = await userService.CreateUser(dto);
+        var result = await userService.RegisterUser(dto);
 
         if (!result.IsSuccess)
         {

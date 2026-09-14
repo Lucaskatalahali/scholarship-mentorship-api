@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.ScholarshipApplications;
 using ScholarshipPlatform.Scholarships;
 using ScholarshipPlatform.Users;
@@ -15,6 +16,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     } 
     public DbSet<Scholarship> Scholarships => Set<Scholarship>();
     public DbSet<ScholarshipApplication> ScholarshipApplications => Set<ScholarshipApplication>();
+    public DbSet<Payment> Payments => Set<Payment>();
     //O próprio IdentityDbContext já configura o User
 
     protected override void OnModelCreating(ModelBuilder builder)
