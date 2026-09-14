@@ -16,4 +16,15 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Scholarship> Scholarships => Set<Scholarship>();
     public DbSet<ScholarshipApplication> ScholarshipApplications => Set<ScholarshipApplication>();
     //O próprio IdentityDbContext já configura o User
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<ScholarshipApplication>()
+            .HasOne(a => a.User)
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
 }

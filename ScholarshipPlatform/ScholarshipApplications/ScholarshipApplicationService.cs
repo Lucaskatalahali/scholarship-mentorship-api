@@ -87,7 +87,7 @@ public class ScholarshipApplicationService
                 s.Id,
                 s.ApplicationDate,
                 s.Status,
-                s.User.Name,
+                s.User == null ? null : s.User.Name,//aqui ainda tem sinal amarelo
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId
@@ -103,7 +103,7 @@ public class ScholarshipApplicationService
                 s.Id,
                 s.ApplicationDate,
                 s.Status,
-                s.User.Name,
+                s.User == null ? null : s.User.Name,//aqui ainda tem sinal amarelo
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId
@@ -119,7 +119,7 @@ public class ScholarshipApplicationService
                 s.Id,
                 s.ApplicationDate,
                 s.Status,
-                s.User.Name,
+                s.User == null ? null : s.User.Name,//aqui ainda tem sinal amarelo
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId
