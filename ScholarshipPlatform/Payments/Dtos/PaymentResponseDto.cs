@@ -1,4 +1,4 @@
-namespace ScholarshipPlatform.Payments;
+namespace ScholarshipPlatform.Payments.Dtos;
 
 public record PaymentResponseDto(
     int Id,

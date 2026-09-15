@@ -1,4 +1,4 @@
-namespace ScholarshipPlatform.ScholarshipApplications;
+namespace ScholarshipPlatform.ScholarshipApplications.Dtos;
 
 public record CreateScholarshipApplicationDto(
     int UserId,

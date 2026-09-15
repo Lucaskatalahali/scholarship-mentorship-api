@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Common;
 using ScholarshipPlatform.Data;
+using ScholarshipPlatform.ScholarshipApplications.Dtos;
 using ScholarshipPlatform.Users;
 
 namespace ScholarshipPlatform.ScholarshipApplications;

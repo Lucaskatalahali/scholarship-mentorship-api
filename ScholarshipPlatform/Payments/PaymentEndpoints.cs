@@ -1,3 +1,5 @@
+using ScholarshipPlatform.Payments.Dtos;
+
 namespace ScholarshipPlatform.Payments;
 
 public static class PaymentEndpoints
@@ -14,7 +16,13 @@ public static class PaymentEndpoints
         group.MapGet("/", GetPayments)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+         group.MapGet("/unpaid", GetUnpaidPayments)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
         group.MapGet("/user/{userEmail}", GetPaymentsByUser)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        group.MapGet("/previous-period", CheckPreviousPeriodPayments)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         return group;
@@ -57,10 +65,22 @@ public static class PaymentEndpoints
         return TypedResults.Ok(paymentsDto);
     }
 
+    private static async Task<IResult> GetUnpaidPayments(PaymentService paymentService)
+    {
+        var paymentsDto = await paymentService.GetUnpaidPayments();
+
+        return TypedResults.Ok(paymentsDto);
+    }
     private static async Task<IResult> GetPaymentsByUser(string userEmail, PaymentService paymentService)
     {
         var paymentsDto = await paymentService.GetPaymentsByUser(userEmail);
 
         return TypedResults.Ok(paymentsDto);
+    }
+
+    private static async Task<IResult> CheckPreviousPeriodPayments(PaymentService paymentService)
+    {
+        await paymentService.CheckPreviousPeriodPayments();
+        return TypedResults.NoContent();
     }
 }

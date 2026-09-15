@@ -1,7 +1,6 @@
-namespace ScholarshipPlatform.Scholarships;
+namespace ScholarshipPlatform.Scholarships.Dtos;
 
-public record ScholarshipResponseDto(
-    int Id,
+public record CreateScholarshipDto(
     string Name,
     string? Description,
     DateOnly Deadline,

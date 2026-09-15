@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Common;
 using ScholarshipPlatform.Data;
+using ScholarshipPlatform.Payments.Dtos;
 using ScholarshipPlatform.Users;
+using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Payments;
 
@@ -105,6 +107,41 @@ public class PaymentService
                 p.User.Email!
             )).ToListAsync();
     }
+
+    public async Task<List<UserResponseDto>> GetUnpaidPayments()
+    {
+        var previousMonth = DateTime.Today.AddMonths(-1); //last month
+
+        var previousPeriod  = new DateOnly(
+            previousMonth.Year,
+            previousMonth.Month,
+            1
+            );
+
+        var mentorandoRoleId = await _db.Roles
+            .Where(r => r.Name == "Mentorando")
+            .Select(r => r.Id)
+            .SingleAsync();
+
+        var usersWithoutPayment = await _db.Users
+            .Where(u => u.AccountStatus == AccountStatus.Active && _db.UserRoles.Any(r =>
+                r.UserId == u.Id &&
+                r.RoleId == mentorandoRoleId))
+            .Where(u => !_db.Payments.Any(p =>
+                p.UserId == u.Id &&
+                p.BillingPeriod == previousPeriod))
+            .Select(u => new UserResponseDto(
+            u.Id,
+            u.Name,
+            u.Email!,
+            u.BirthDate,
+            u.Gpa,
+            u.AccountStatus
+            )
+        ).ToListAsync();
+        
+        return usersWithoutPayment;
+    }
     
     public async Task<List<PaymentResponseDto>> GetPaymentsByUser(string userEmail)
     {
@@ -119,5 +156,36 @@ public class PaymentService
                 p.User.Name,
                 p.User.Email!
             )).ToListAsync();
+    }
+
+    public async Task CheckPreviousPeriodPayments()
+    {
+        var previousMonth = DateTime.Today.AddMonths(-1); //last month
+
+        var previousPeriod  = new DateOnly(
+            previousMonth.Year,
+            previousMonth.Month,
+            1
+            );
+
+        var mentorandoRoleId = await _db.Roles
+            .Where(r => r.Name == "Mentorando")
+            .Select(r => r.Id)
+            .SingleAsync();
+
+        var usersWithoutPayment = await _db.Users
+            .Where(u => u.AccountStatus == AccountStatus.Active && _db.UserRoles.Any(r =>
+                r.UserId == u.Id &&
+                r.RoleId == mentorandoRoleId))
+            .Where(u => !_db.Payments.Any(p =>
+                p.UserId == u.Id &&
+                p.BillingPeriod == previousPeriod))
+            .ToListAsync();
+
+        foreach(var user in usersWithoutPayment)
+        {
+            user.AccountStatus = AccountStatus.SuspendedByDebt;
+            await _userManager.UpdateAsync(user);
+        }        
     }
 }

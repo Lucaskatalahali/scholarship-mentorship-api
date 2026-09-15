@@ -1,4 +1,4 @@
-namespace ScholarshipPlatform.Users;
+namespace ScholarshipPlatform.Users.Dtos;
 
 public record CreateUserDto(
     string Name,

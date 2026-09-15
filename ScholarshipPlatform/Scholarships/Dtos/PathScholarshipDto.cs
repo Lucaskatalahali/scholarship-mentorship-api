@@ -1,4 +1,4 @@
-namespace ScholarshipPlatform.Scholarships;
+namespace ScholarshipPlatform.Scholarships.Dtos;
 
 public record PathScholarshipDto(
     string? Name,

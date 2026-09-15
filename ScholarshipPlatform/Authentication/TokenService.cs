@@ -2,8 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using ScholarshipPlatform.Users;
 
-namespace ScholarshipPlatform.Users;
+namespace ScholarshipPlatform.Authentication;
 
 public class TokenService : ITokenService
 {

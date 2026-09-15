@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using ScholarshipPlatform.Authentication.Dtos;
+using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Users;
 
@@ -9,7 +11,7 @@ public static class UserEndpoints
         var group = app.MapGroup("/users");
 
         group.MapGet("/", GetUsers)
-            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
         
         group.MapGet("/{id:int}", GetUserById)
             .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
@@ -31,7 +33,11 @@ public static class UserEndpoints
 
         group.MapPost("/login", Login);
 
-        //GET /users/{userId}/payments;
+        group.MapPatch("/{userEmail}/suspend", SuspendUser)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+         group.MapPatch("/{userEmail}/reactivate", ReactivateUser)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         return group;    
     }
@@ -160,5 +166,33 @@ private static async Task<IResult> GetCurrentUser(
         return token is null
             ? TypedResults.Unauthorized()
             : TypedResults.Ok(new LoginResponseDto(token));
+    }
+
+    private static async Task<IResult> SuspendUser(string userEmail, UserService userService)
+    {
+        var result = await userService.SuspendUser(userEmail);
+
+        if(result is null) 
+            return TypedResults.NotFound();
+
+        if(result.Value == false) 
+            return TypedResults.Problem(
+                "Account has already been suspended or something went wrong while updating");
+
+        return TypedResults.NoContent(); 
+    }
+
+    private static async Task<IResult> ReactivateUser(string userEmail, UserService userService)
+    {
+        var result = await userService.ReactivateUser(userEmail);
+
+        if(result is null) 
+            return TypedResults.NotFound();
+
+        if(result.Value == false) 
+            return TypedResults.Problem(
+                "Account is already active or something went wrong while updating");
+
+        return TypedResults.NoContent(); 
     }
 }

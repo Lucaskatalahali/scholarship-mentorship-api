@@ -1,5 +1,5 @@
 using FluentValidation;
-namespace ScholarshipPlatform.Scholarships;
+namespace ScholarshipPlatform.Scholarships.Dtos;
 
 public class CreateScholarshipDtoValidator : AbstractValidator<CreateScholarshipDto>
 {

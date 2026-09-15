@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace ScholarshipPlatform.Users;
+namespace ScholarshipPlatform.Authentication.Dtos;
 
 public class LoginDtoValidator : AbstractValidator<LoginDto>
 {

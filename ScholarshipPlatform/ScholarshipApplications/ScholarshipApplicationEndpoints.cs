@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Npgsql.Replication;
+using ScholarshipPlatform.ScholarshipApplications.Dtos;
 
 namespace ScholarshipPlatform.ScholarshipApplications;
 

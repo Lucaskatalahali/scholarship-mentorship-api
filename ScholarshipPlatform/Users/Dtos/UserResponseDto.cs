@@ -1,9 +1,10 @@
-namespace ScholarshipPlatform.Users;
+namespace ScholarshipPlatform.Users.Dtos;
 
 public record UserResponseDto(
     int Id,
     string Name,
     string Email,
     DateOnly? BirthDate,
-    decimal? Gpa 
+    decimal? Gpa,
+    AccountStatus AccountStatus
 );

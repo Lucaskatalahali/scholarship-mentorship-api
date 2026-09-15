@@ -1,3 +1,5 @@
+using ScholarshipPlatform.Scholarships.Dtos;
+
 namespace ScholarshipPlatform.Scholarships;
 
 public static class ScholarshipEndpoins

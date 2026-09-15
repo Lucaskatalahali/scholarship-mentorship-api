@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ScholarshipPlatform.Authentication;
+using ScholarshipPlatform.Authentication.Dtos;
 using ScholarshipPlatform.Common;
+using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Users;
 
@@ -40,7 +43,7 @@ public class UserService
             return ServiceResult<UserResponseDto>.Failure(errors);
         } 
 
-        var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
+        var roleResult = await _userManager.AddToRoleAsync(user, "Mentorando");
 
         if (!roleResult.Succeeded)
         {
@@ -59,7 +62,8 @@ public class UserService
             user.Name,
             user.Email,
             user.BirthDate,
-            user.Gpa
+            user.Gpa,
+            user.AccountStatus
         );
 
         return ServiceResult<UserResponseDto>.Success(userResponseDto);
@@ -76,7 +80,8 @@ public class UserService
             user.Name,
             user.Email!,
             user.BirthDate,
-            user.Gpa
+            user.Gpa,
+            user.AccountStatus
         );
     }
 
@@ -88,7 +93,8 @@ public class UserService
             u.Name,
             u.Email!,
             u.BirthDate,
-            u.Gpa
+            u.Gpa,
+            u.AccountStatus
             )
         ).ToListAsync();
     }
@@ -132,5 +138,39 @@ public class UserService
         var roles = await _userManager.GetRolesAsync(user);
 
         return _tokenService.GenerateToken(user, roles);
+    }
+
+    public async Task<bool?> SuspendUser(string userEmail)
+    {
+        var user = await _userManager.FindByEmailAsync(userEmail);
+
+        if(user == null) return null;
+
+        if(user.AccountStatus != AccountStatus.Active)
+            return false; //A conta já está suspensa por algum motivo
+
+        // A conta está ativa e pode ser suspensa voluntariamente.
+        user.AccountStatus = AccountStatus.SuspendedVoluntarily;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        return result.Succeeded; 
+    }
+
+    public async Task<bool?> ReactivateUser(string userEmail)
+    {
+        var user = await _userManager.FindByEmailAsync(userEmail);
+
+        if(user == null) return null;
+
+        if(user.AccountStatus == AccountStatus.Active)
+            return false; //A conta já está activa
+
+        // A conta está suspensa e pode ser reactivada sob uma justificativa prévia
+        user.AccountStatus = AccountStatus.Active;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        return result.Succeeded; 
     }
 }

@@ -1,4 +1,4 @@
-namespace ScholarshipPlatform.Users;
+namespace ScholarshipPlatform.Authentication.Dtos;
 
 public record LoginDto(
     string Email,

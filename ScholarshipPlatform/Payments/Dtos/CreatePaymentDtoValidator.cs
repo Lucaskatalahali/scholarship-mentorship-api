@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace ScholarshipPlatform.Payments;
+namespace ScholarshipPlatform.Payments.Dtos;
 
 public class CreatePaymentDtoValidator : AbstractValidator<CreatePaymentDto>
 {

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Data;
+using ScholarshipPlatform.Scholarships.Dtos;
 using ScholarshipPlatform.Users;
 namespace ScholarshipPlatform.Scholarships;
 

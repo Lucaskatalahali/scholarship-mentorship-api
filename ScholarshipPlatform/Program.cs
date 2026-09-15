@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Tokens; //pra imprimir a string do enum, e não seu valor int.
 using System.Text;
 using ScholarshipPlatform.Payments;
+using ScholarshipPlatform.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 

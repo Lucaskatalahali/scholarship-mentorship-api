@@ -1,4 +1,7 @@
-namespace ScholarshipPlatform.Users;
+
+using ScholarshipPlatform.Users;
+
+namespace ScholarshipPlatform.Authentication;
 
 public interface ITokenService
 {
