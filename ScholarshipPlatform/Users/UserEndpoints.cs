@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using ScholarshipPlatform.Authentication.Dtos;
 using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Users;
@@ -31,15 +30,11 @@ public static class UserEndpoints
         group.MapDelete("/{id:int}", DeleteUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-        group.MapPost("/login", Login);
-
         group.MapPatch("/{userEmail}/suspend", SuspendUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
          group.MapPatch("/{userEmail}/reactivate", ReactivateUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
-
-        group.MapGet("/confirm-email", ConfirmEmail);
 
         return group;    
     }
@@ -62,19 +57,7 @@ public static class UserEndpoints
         }
 
         return TypedResults.Created($"/users/{result.Data!.Id}", result.Data); //Data is userDto
-    }
-
-    private static async Task<IResult> ConfirmEmail(
-        int userId, 
-        string token, 
-        UserService userService)
-    {
-        var result = await userService.ConfirmEmail(userId, token);
-
-        if(!result) 
-            return TypedResults.BadRequest("Email confirmation failed.");
-
-        return TypedResults.Ok("Email confirmed successfully.");
+        //Após o registro, informar o user pra verificar seu email (talvez pelo frontend)
     }
 
     private static async Task<IResult> GetUserById(int id, UserService userService)
@@ -164,23 +147,6 @@ private static async Task<IResult> GetCurrentUser(
         return wasDeleted
             ? TypedResults.NoContent()
             : TypedResults.NotFound();
-    }
-
-    private static async Task<IResult> Login(
-        LoginDto dto, 
-        LoginDtoValidator validator,
-        UserService userService)
-    {
-        var validationResult = await validator.ValidateAsync(dto);
-
-        if(!validationResult.IsValid)
-            return TypedResults.ValidationProblem(validationResult.ToDictionary());
-
-        var token = await userService.Login(dto);
-
-        return token is null
-            ? TypedResults.Unauthorized()
-            : TypedResults.Ok(new LoginResponseDto(token));
     }
 
     private static async Task<IResult> SuspendUser(string userEmail, UserService userService)

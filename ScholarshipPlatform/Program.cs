@@ -54,6 +54,7 @@ builder.Services.AddScoped<ScholarshipApplicationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); //AddTransient?
+builder.Services.AddScoped<AuthenticationService>();
 
 
 //Para imprimir o enum como string, e não pelo seu valor int.
@@ -101,21 +102,10 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-//testando enviar email
-/*app.MapGet("/test-email", async(IEmailService emailService) =>
-{
-    await emailService.SendEmailAsync(
-        "rufinolucasamerico@gmail.com",
-        "Teste de Email da CBEC",
-        "Este email é um teste, enviado pela CBEC"
-    );
-
-    return Results.Ok("Email enviado");
-});*/
-
 app.MapUserEndpoints();
 app.MapScholarshipEndpoints();
 app.MapScholarshipApplicationEndpoints();
 app.MapPaymentEndpoints();
-
+app.MapAuthenticationEndpoints()
+;
 app.Run();

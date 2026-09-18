@@ -1,4 +1,3 @@
-
 using ScholarshipPlatform.Users;
 
 namespace ScholarshipPlatform.Authentication;

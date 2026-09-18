@@ -11,7 +11,7 @@ loginForm.addEventListener("submit", async (event) => {
     try {
 
         const response = await fetch(
-            "http://localhost:5274/users/login",
+            "http://localhost:5274/auth/login",
             {
                 method: "POST",
 
