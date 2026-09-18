@@ -6,7 +6,7 @@ using ScholarshipPlatform.Users;
 using ScholarshipPlatform.Scholarships;
 using ScholarshipPlatform.ScholarshipApplications;
 using System.Text.Json.Serialization;
-using Microsoft.IdentityModel.Tokens; //pra imprimir a string do enum, e não seu valor int.
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.Authentication;
@@ -57,7 +57,7 @@ builder.Services.AddScoped<IEmailService, EmailService>(); //AddTransient?
 builder.Services.AddScoped<AuthenticationService>();
 
 
-//Para imprimir o enum como string, e não pelo seu valor int.
+// Para serializar enums como strings, em vez de seus valores inteiros.
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
