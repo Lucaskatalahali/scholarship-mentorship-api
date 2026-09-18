@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens; //pra imprimir a string do enum, e não se
 using System.Text;
 using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.Authentication;
+using ScholarshipPlatform.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.
     AddIdentityCore<User>()
     .AddRoles<IdentityRole<int>>()
-    .AddEntityFrameworkStores<AppDbContext>();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 // Esta API vai usar o esquema Bearer para autenticação e JWT Bearer para processar os tokens.
 builder.Services
@@ -51,6 +53,7 @@ builder.Services.AddScoped<ScholarshipService>();
 builder.Services.AddScoped<ScholarshipApplicationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<IEmailService, EmailService>(); //AddTransient?
 
 
 //Para imprimir o enum como string, e não pelo seu valor int.
@@ -59,8 +62,23 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+//adicionando para testes com frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("TestClient", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 
 var app = builder.Build();
+
+//adicionando para test com frontend
+app.UseCors("TestClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -82,6 +100,18 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+
+//testando enviar email
+/*app.MapGet("/test-email", async(IEmailService emailService) =>
+{
+    await emailService.SendEmailAsync(
+        "rufinolucasamerico@gmail.com",
+        "Teste de Email da CBEC",
+        "Este email é um teste, enviado pela CBEC"
+    );
+
+    return Results.Ok("Email enviado");
+});*/
 
 app.MapUserEndpoints();
 app.MapScholarshipEndpoints();

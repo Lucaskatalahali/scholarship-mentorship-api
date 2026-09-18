@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Scholarship | Scholarship Platform</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+        <div class="container">
+
+            <a class="navbar-brand fw-bold" href="index.html">
+                Scholarship<span class="text-primary">Platform</span>
+            </a>
+
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#mainNavbar"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+
+                <ul class="navbar-nav mx-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link active" href="create-scholarship.html">
+                            Create Scholarship
+                        </a>
+                    </li>
+
+                </ul>
+
+                <div class="d-flex gap-2">
+
+                    <a href="login.html" class="btn btn-outline-primary">
+                        Login
+                    </a>
+
+                    <a href="register.html" class="btn btn-primary">
+                        Register
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Page -->
+
+    <main class="py-5">
+
+        <div class="container">
+
+            <div class="row justify-content-center">
+
+                <div class="col-lg-8">
+
+                    <div class="mb-4">
+
+                        <span class="text-primary fw-semibold">
+                            Administration
+                        </span>
+
+                        <h1 class="fw-bold mt-1">
+                            Create Scholarship
+                        </h1>
+
+                        <p class="text-secondary">
+                            Add a new scholarship opportunity to the platform.
+                        </p>
+
+                    </div>
+
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-body p-4 p-md-5">
+
+                            <form id="scholarshipForm">
+
+                                <!-- Name -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="name"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Scholarship Name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        class="form-control"
+                                        placeholder="e.g. Türkiye Scholarships"
+                                        required
+                                    >
+
+                                </div>
+
+
+                                <!-- Description -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="description"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Description
+                                    </label>
+
+                                    <textarea
+                                        id="description"
+                                        class="form-control"
+                                        rows="4"
+                                        placeholder="Describe the scholarship..."
+                                    ></textarea>
+
+                                </div>
+
+
+                                <!-- Deadline -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="deadline"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Application Deadline
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        id="deadline"
+                                        class="form-control"
+                                        required
+                                    >
+
+                                </div>
+
+
+                                <!-- Eligibility -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="eligibility"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Eligibility
+                                    </label>
+
+                                    <textarea
+                                        id="eligibility"
+                                        class="form-control"
+                                        rows="7"
+                                        placeholder="Who is eligible for this scholarship?"
+                                    ></textarea>
+
+                                </div>
+
+
+                                <!-- How To Apply -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="howToApply"
+                                        class="form-label fw-semibold"
+                                    >
+                                        How to Apply
+                                    </label>
+
+                                    <textarea
+                                        id="howToApply"
+                                        class="form-control"
+                                        rows="5"
+                                        placeholder="Explain how students can apply..."
+                                    ></textarea>
+
+                                </div>
+
+
+                                <!-- Official URL -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="officialUrl"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Official URL
+                                    </label>
+
+                                    <input
+                                        type="url"
+                                        id="officialUrl"
+                                        class="form-control"
+                                        placeholder="https://example.com"
+                                    >
+
+                                </div>
+
+
+                                <!-- Required Documents -->
+
+                                <div class="mb-4">
+
+                                    <label
+                                        for="requiredDocuments"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Required Documents
+                                    </label>
+
+                                    <textarea
+                                        id="requiredDocuments"
+                                        class="form-control"
+                                        rows="5"
+                                        placeholder="- Passport&#10;- Transcript&#10;- Diploma"
+                                    ></textarea>
+
+                                </div>
+
+
+                                <!-- Message -->
+
+                                <div
+                                    id="message"
+                                    class="mb-3"
+                                    role="alert"
+                                ></div>
+
+
+                                <!-- Submit -->
+
+                                <div class="d-flex justify-content-end">
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary px-4"
+                                    >
+                                        Create Scholarship
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script src="js/create-scholarship.js"></script>
+
+</body>
+</html>

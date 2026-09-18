@@ -1,5 +1,7 @@
 @ScholarshipPlatform_HostAddress = http://localhost:5274
 
+###GET  {{ScholarshipPlatform_HostAddress}}/test-email
+
 ### USERS
 
 POST {{ScholarshipPlatform_HostAddress}}/users

@@ -1,8 +1,12 @@
+using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Authentication;
 using ScholarshipPlatform.Authentication.Dtos;
 using ScholarshipPlatform.Common;
+using ScholarshipPlatform.Data;
+using ScholarshipPlatform.Email;
 using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Users;
@@ -11,11 +15,15 @@ public class UserService
 {
     private readonly UserManager<User> _userManager;
     private readonly ITokenService _tokenService;
+    private readonly IEmailService _emailService;
+    private AppDbContext _db;
 
-    public UserService(UserManager<User> userManager, ITokenService tokenService)
+    public UserService(UserManager<User> userManager, ITokenService tokenService, AppDbContext db, IEmailService emailService)
     {
         _userManager = userManager;
         _tokenService = tokenService;
+        _db = db;
+        _emailService = emailService;
     }
 
     public async Task<ServiceResult<UserResponseDto>> RegisterUser(CreateUserDto dto)
@@ -29,33 +37,68 @@ public class UserService
             Gpa = dto.Gpa,
         };
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        // Criar user e adicionar role devem acontecer ao mesmo tempo
+        await using var transaction = await _db.Database.BeginTransactionAsync();
 
-        if (!result.Succeeded)
+        try
         {
-            var errors = result.Errors
-                .GroupBy(e => e.Code)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.Description).ToArray()
-                );
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
-            return ServiceResult<UserResponseDto>.Failure(errors);
-        } 
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors
+                    .GroupBy(e => e.Code)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
 
-        var roleResult = await _userManager.AddToRoleAsync(user, "Mentorando");
+                await transaction.RollbackAsync();
 
-        if (!roleResult.Succeeded)
-        {
-            var errors = roleResult.Errors
-                .GroupBy(e => e.Code)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.Description).ToArray()
-                );
+                return ServiceResult<UserResponseDto>.Failure(errors);
+            }
 
-            return ServiceResult<UserResponseDto>.Failure(errors);
+            var roleResult = await _userManager.AddToRoleAsync(user, "Mentorando");
+
+            if (!roleResult.Succeeded)
+            {
+                var errors = roleResult.Errors
+                    .GroupBy(e => e.Code)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+
+                await transaction.RollbackAsync();
+
+                return ServiceResult<UserResponseDto>.Failure(errors);
+            }
+
+            await transaction.CommitAsync();
         }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        //Codificação adequada para transporte do token em uma URL
+
+        var encodedToken = WebEncoders.Base64UrlEncode(
+            Encoding.UTF8.GetBytes(token)
+        );
+
+        var confirmationLink = $"http://localhost:5274/users/confirm-email?userId={user.Id}&token={encodedToken}";
+
+        await _emailService.SendEmailAsync(
+            user.Email,
+            "Email Confirmation",
+            $"Click this link to confirm your email: {confirmationLink}"
+        );
+
+        Console.WriteLine(encodedToken);
 
         var userResponseDto = new UserResponseDto(
             user.Id,
@@ -67,6 +110,22 @@ public class UserService
         );
 
         return ServiceResult<UserResponseDto>.Success(userResponseDto);
+    }
+
+    public async Task<bool> ConfirmEmail(int userId, string token)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if(user is null) return false;
+
+        // Decodificação do token que foi previamente codificada para transporte em URL
+        var decodedToken = Encoding.UTF8.GetString(
+            WebEncoders.Base64UrlDecode(token)
+        );
+
+        var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+        return result.Succeeded;
     }
 
     public async Task<UserResponseDto?> GetUserById(int id)
@@ -131,9 +190,13 @@ public class UserService
 
         if(user is null) return null;
 
-        var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
-
-        if(!passwordValid) return null;
+        if(
+            !await _userManager.IsEmailConfirmedAsync(user) ||
+            !await _userManager.CheckPasswordAsync(user, dto.Password)
+        )
+        {
+            return null;
+        }
 
         var roles = await _userManager.GetRolesAsync(user);
 

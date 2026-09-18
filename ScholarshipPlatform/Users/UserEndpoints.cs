@@ -39,6 +39,8 @@ public static class UserEndpoints
          group.MapPatch("/{userEmail}/reactivate", ReactivateUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+        group.MapGet("/confirm-email", ConfirmEmail);
+
         return group;    
     }
 
@@ -60,6 +62,19 @@ public static class UserEndpoints
         }
 
         return TypedResults.Created($"/users/{result.Data!.Id}", result.Data); //Data is userDto
+    }
+
+    private static async Task<IResult> ConfirmEmail(
+        int userId, 
+        string token, 
+        UserService userService)
+    {
+        var result = await userService.ConfirmEmail(userId, token);
+
+        if(!result) 
+            return TypedResults.BadRequest("Email confirmation failed.");
+
+        return TypedResults.Ok("Email confirmed successfully.");
     }
 
     private static async Task<IResult> GetUserById(int id, UserService userService)
