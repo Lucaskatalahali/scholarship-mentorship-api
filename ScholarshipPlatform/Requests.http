@@ -5,7 +5,7 @@ POST {{ScholarshipPlatform_HostAddress}}/auth/forgot-password
 Content-Type: application/json
 
 {
-    "Email":
+    "Email": ""
 }
 
 ###
@@ -14,8 +14,8 @@ Content-Type: application/json
 
 {
     "NewPassword": "",
-    "Token": ""
-    "UserId"
+    "Token": "",
+    "UserId": 
 }
 
 

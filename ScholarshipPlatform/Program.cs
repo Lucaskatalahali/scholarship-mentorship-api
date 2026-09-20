@@ -1,3 +1,7 @@
+
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +23,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 builder.Services.
     AddIdentityCore<User>()
@@ -78,6 +87,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Pipeline HTTP e Documentação,
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi(); // Expõe a especificação em /openapi/v1.json
+    app.MapScalarApiReference();// Monta a interface interativa em /scalar/v1
+}
+
 //adicionando para test com frontend
 app.UseCors("TestClient");
 
@@ -109,3 +125,39 @@ app.MapPaymentEndpoints();
 app.MapAuthenticationEndpoints()
 ;
 app.Run();
+
+
+
+//Código para trabalhar com Scalar
+internal sealed class BearerSecuritySchemeTransformer(
+    Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider authenticationSchemeProvider)
+    : IOpenApiDocumentTransformer
+{
+    public async Task TransformAsync(
+        OpenApiDocument document,
+        OpenApiDocumentTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        var authenticationSchemes =
+            await authenticationSchemeProvider.GetAllSchemesAsync();
+
+        if (authenticationSchemes.Any(scheme => scheme.Name == "Bearer"))
+        {
+            var securitySchemes =
+                new Dictionary<string, IOpenApiSecurityScheme>
+                {
+                    ["Bearer"] = new OpenApiSecurityScheme
+                    {
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        In = ParameterLocation.Header,
+                        BearerFormat = "JWT"
+                    }
+                };
+
+            document.Components ??= new OpenApiComponents();
+
+            document.Components.SecuritySchemes = securitySchemes;
+        }
+    }
+}

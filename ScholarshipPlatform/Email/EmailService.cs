@@ -17,8 +17,11 @@ public class EmailService : IEmailService
         //Criando a mensagem
         var message = new MimeMessage();
 
+        var senderName = _configuration["Email:SenderName"] ?? "Scholarship Platform";
+        var senderEmail = _configuration["Email:From"]!;
+
         message.From.Add(
-            MailboxAddress.Parse(_configuration["Email:From"]!));
+            new MailboxAddress(senderName, senderEmail));
 
         message.To.Add(
             MailboxAddress.Parse(to));
