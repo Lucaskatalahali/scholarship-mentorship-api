@@ -20,6 +20,9 @@ public static class UserEndpoints
 
         group.MapPost("/", RegisterUser);
 
+        group.MapPatch("/{id:int}/approve-registration", ApproveRegistration)
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
         group.MapPatch("/{id:int}", UpdateUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));   
 
@@ -30,7 +33,7 @@ public static class UserEndpoints
         group.MapDelete("/{id:int}", DeleteUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-        group.MapPatch("/{userEmail}/suspend", SuspendUser)
+        group.MapPatch("/{userEmail}/suspend", SuspendUserVoluntarily)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
          group.MapPatch("/{userEmail}/reactivate", ReactivateUser)
@@ -58,6 +61,35 @@ public static class UserEndpoints
 
         return TypedResults.Created($"/users/{result.Data!.Id}", result.Data); //Data is userDto
         //Após o registro, informar o user pra verificar seu email (talvez pelo frontend)
+    }
+
+    private static async Task<IResult> ApproveRegistration(int id, UserService userService)
+    {
+        var result = await userService.ApproveRegistration(id);
+
+        return result switch
+        {
+        ApprovalResult.Success => 
+            TypedResults.NoContent(),
+
+        ApprovalResult.NotFound => 
+            TypedResults.NotFound(),
+
+        ApprovalResult.EmailNotConfirmed => 
+            TypedResults.BadRequest(new 
+            { 
+                code = "EmailNotConfirmed", 
+                message = "Não é possível aprovar o registo: o utilizador ainda não confirmou o seu endereço de e-mail." 
+            }),
+
+        ApprovalResult.AlreadyApproved => 
+            TypedResults.Conflict("Este utilizador já se encontra aprovado e ativo."),
+
+        ApprovalResult.InvalidStatus => 
+            TypedResults.BadRequest("Apenas utilizadores com estado 'RegistrationPending' podem ser aprovados."),
+
+        _ => TypedResults.BadRequest("Erro ao processar a aprovação do registo.")
+        };
     }
 
     private static async Task<IResult> GetUserById(int id, UserService userService)
@@ -149,7 +181,7 @@ private static async Task<IResult> GetCurrentUser(
             : TypedResults.NotFound();
     }
 
-    private static async Task<IResult> SuspendUser(string userEmail, UserService userService)
+    private static async Task<IResult> SuspendUserVoluntarily(string userEmail, UserService userService)
     {
         var result = await userService.SuspendUser(userEmail);
 

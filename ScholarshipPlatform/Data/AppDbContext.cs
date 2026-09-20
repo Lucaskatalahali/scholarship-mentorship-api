@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ScholarshipPlatform.Courses;
 using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.ScholarshipApplications;
 using ScholarshipPlatform.Scholarships;
@@ -17,6 +18,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Scholarship> Scholarships => Set<Scholarship>();
     public DbSet<ScholarshipApplication> ScholarshipApplications => Set<ScholarshipApplication>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Course> Courses => Set<Course>();
+    
     //O próprio IdentityDbContext já configura o User
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -28,5 +31,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             .WithMany()
             .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<User>()
+            .ComplexProperty(u => u.Address);
     }
 }

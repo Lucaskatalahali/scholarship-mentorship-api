@@ -22,7 +22,7 @@ public static class PaymentEndpoints
         group.MapGet("/user/{userEmail}", GetPaymentsByUser)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-        group.MapGet("/previous-period", CheckPreviousPeriodPayments)
+        group.MapGet("/previous-period", ProcessPreviousPeriodPayments)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         return group;
@@ -78,9 +78,9 @@ public static class PaymentEndpoints
         return TypedResults.Ok(paymentsDto);
     }
 
-    private static async Task<IResult> CheckPreviousPeriodPayments(PaymentService paymentService)
+    private static async Task<IResult> ProcessPreviousPeriodPayments(PaymentService paymentService)
     {
-        await paymentService.CheckPreviousPeriodPayments();
+        await paymentService.ProcessPreviousPeriodPayments();
         return TypedResults.NoContent();
     }
 }

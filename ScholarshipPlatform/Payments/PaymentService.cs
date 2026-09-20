@@ -135,7 +135,9 @@ public class PaymentService
             u.Name,
             u.Email!,
             u.BirthDate,
-            u.Gpa,
+            u.Address,
+            u.EducationLevel,
+            u.Average,
             u.AccountStatus
             )
         ).ToListAsync();
@@ -158,7 +160,7 @@ public class PaymentService
             )).ToListAsync();
     }
 
-    public async Task CheckPreviousPeriodPayments()
+    public async Task ProcessPreviousPeriodPayments()
     {
         var previousMonth = DateTime.Today.AddMonths(-1); //last month
 

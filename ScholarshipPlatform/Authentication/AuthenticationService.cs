@@ -31,6 +31,7 @@ public class AuthenticationService
 
         if(
             !await _userManager.IsEmailConfirmedAsync(user) ||
+            user.AccountStatus == AccountStatus.RegistrationPending ||
             !await _userManager.CheckPasswordAsync(user, dto.Password)
         )
         {

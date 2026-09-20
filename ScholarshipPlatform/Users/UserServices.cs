@@ -10,6 +10,15 @@ using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Users;
 
+public enum ApprovalResult
+{
+    Success,
+    NotFound,
+    AlreadyApproved,
+    EmailNotConfirmed,
+    InvalidStatus
+}
+
 public class UserService
 {
     private readonly UserManager<User> _userManager;
@@ -30,8 +39,18 @@ public class UserService
             Name = dto.Name.Trim(),
             Email = dto.Email,
             UserName = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
             BirthDate = dto.BirthDate,
-            Gpa = dto.Gpa,
+            
+            Address = new Address
+            {
+                Country = dto.Address.Country,
+                Province = dto.Address.Province,
+                AddressLine = dto.Address.AddressLine    
+            },
+
+            EducationLevel = dto.EducationLevel,
+            Average = dto.Gpa,
         };
 
         // Criar user e adicionar role devem acontecer ao mesmo tempo
@@ -100,11 +119,36 @@ public class UserService
             user.Name,
             user.Email,
             user.BirthDate,
-            user.Gpa,
+            user.Address,
+            user.EducationLevel,
+            user.Average,
             user.AccountStatus
         );
 
         return ServiceResult<UserResponseDto>.Success(userResponseDto);
+    }
+
+    public async Task<ApprovalResult> ApproveRegistration(int id)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());
+
+        if(user is null) 
+            return ApprovalResult.NotFound;
+
+        if(!await _userManager.IsEmailConfirmedAsync(user))
+            return ApprovalResult.EmailNotConfirmed;
+
+        if(user.AccountStatus == AccountStatus.Active)
+            return ApprovalResult.AlreadyApproved;
+
+        if(user.AccountStatus != AccountStatus.RegistrationPending)
+        return ApprovalResult.InvalidStatus;
+            
+
+        user.AccountStatus = AccountStatus.Active;
+        await _userManager.UpdateAsync(user);
+
+        return ApprovalResult.Success;
     }
 
     public async Task<UserResponseDto?> GetUserById(int id)
@@ -118,7 +162,9 @@ public class UserService
             user.Name,
             user.Email!,
             user.BirthDate,
-            user.Gpa,
+            user.Address,
+            user.EducationLevel,
+            user.Average,
             user.AccountStatus
         );
     }
@@ -131,7 +177,9 @@ public class UserService
             u.Name,
             u.Email!,
             u.BirthDate,
-            u.Gpa,
+            u.Address,
+            u.EducationLevel,
+            u.Average,
             u.AccountStatus
             )
         ).ToListAsync();
@@ -144,8 +192,12 @@ public class UserService
         if(user is null) return false;
 
         if(dto.Name is not null) user.Name = dto.Name.Trim();
-        if(dto.BirthDate is not null) user.BirthDate = dto.BirthDate;
-        if(dto.Gpa is not null) user.Gpa = dto.Gpa;
+        if(dto.BirthDate is not null) user.BirthDate = dto.BirthDate.Value;
+        if(dto.Average is not null) user.Average = dto.Average.Value;
+        if(dto.Adress.Country is not null) user.Address.Country = dto.Adress.Country;
+        if(dto.Adress.Province is not null) user.Address.Province = dto.Adress.Province;
+        if(dto.Adress.AddressLine is not null) user.Address.AddressLine = dto.Adress.AddressLine;
+        if(dto.EducationLevel.HasValue) user.EducationLevel = dto.EducationLevel.Value;
 
         var result = await _userManager.UpdateAsync(user);
 
@@ -169,10 +221,16 @@ public class UserService
 
         if(user == null) return null;
 
-        if(user.AccountStatus != AccountStatus.Active)
+        if(
+            user.AccountStatus != AccountStatus.Active ||
+            user.AccountStatus != AccountStatus.RegistrationPending
+        )
+        {
             return false; //A conta já está suspensa por algum motivo
-
+        }
+            
         // A conta está ativa e pode ser suspensa voluntariamente.
+        //Contas pendentes não podem pedir suspensão
         user.AccountStatus = AccountStatus.SuspendedVoluntarily;
 
         var result = await _userManager.UpdateAsync(user);

@@ -37,6 +37,9 @@ public static class ScholarshipEndpoins
 
         var responseDto = await scholarshipService.CreateScholarship(dto);
 
+        if(responseDto is null) 
+            return TypedResults.BadRequest("Um ou mais cursos informados não existem.");
+
         return TypedResults.Created($"/scholarships/{responseDto.Id}", responseDto);
     }
 
@@ -71,11 +74,16 @@ public static class ScholarshipEndpoins
 
         if(!validationResult.IsValid) return TypedResults.ValidationProblem(validationResult.ToDictionary());
 
-        var wasUpdated = await scholarshipService.UpdateScholarship(id, dto);
+        var result = await scholarshipService.UpdateScholarship(id, dto);
 
-        return wasUpdated
-            ? TypedResults.NoContent()
-            : TypedResults.NotFound();
+        if(result is null) 
+            return TypedResults.NotFound("Bolsa não encontrada");
+            
+        
+        if(result.Value == false)
+            return TypedResults.BadRequest("Um ou mais cursos informados não existem.");
+
+        return TypedResults.NoContent();
     }
 
     private static async Task<IResult> DeleteScholarship(int id, ScholarshipService scholarshipService)
