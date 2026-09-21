@@ -1,17 +1,16 @@
 using System.Security.Claims;
-using Npgsql.Replication;
 using ScholarshipPlatform.ScholarshipApplications.Dtos;
 
 namespace ScholarshipPlatform.ScholarshipApplications;
 
-public static class ScholarshipApplicationEndpoints
+public static class ApplicationEndpoints
 {
-    public static RouteGroupBuilder MapScholarshipApplicationEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapApplicationEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/scholarshipApplications");
+        var group = app.MapGroup("/applications");
 
         group.MapPost("/", CreateScholarshipApplication)
-            .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
+            .RequireAuthorization(policy => policy.RequireRole("Mentorando"));
 
         group.MapGet("/{id:int}", GetScholarshipApplicationById)
             .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor")); 
@@ -34,14 +33,17 @@ public static class ScholarshipApplicationEndpoints
     }
 
     private static async Task<IResult> CreateScholarshipApplication(
-        CreateScholarshipApplicationDto dto, 
-        ScholarshipApplicationService scholarshipApplicationService
+        ClaimsPrincipal user,
+        CreateApplicationDto dto, 
+        ApplicationService scholarshipApplicationService
     )
     {
-        if(dto.UserId <= 0 || dto.ScholarshipId <= 0) 
-            return TypedResults.BadRequest("ID must be greater than 0");
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var result = await scholarshipApplicationService.CreateScholarshipApplication(dto);
+        if (!int.TryParse(userId, out var id))
+        return TypedResults.Unauthorized();
+
+        var result = await scholarshipApplicationService.CreateScholarshipApplication(id, dto);
 
         if (!result.IsSuccess)
             return TypedResults.ValidationProblem(result.Errors!); //Depois tratar erros específicos
@@ -49,7 +51,7 @@ public static class ScholarshipApplicationEndpoints
         return TypedResults.Created($"/scholarshipApplications/{result.Data!.Id}", result.Data);
     }
 
-    private static async Task<IResult> GetScholarshipApplicationById(int id, ScholarshipApplicationService scholarshipApplicationService)
+    private static async Task<IResult> GetScholarshipApplicationById(int id, ApplicationService scholarshipApplicationService)
     {
         if(id <= 0)
             return TypedResults.BadRequest("ID must be greater than 0");
@@ -64,7 +66,7 @@ public static class ScholarshipApplicationEndpoints
     //O usuário obtem suas próprias aplicações
     private static async Task<IResult> GetMyScholarshipApplications(
         ClaimsPrincipal user,
-        ScholarshipApplicationService scholarshipApplicationService)
+        ApplicationService scholarshipApplicationService)
     {
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -76,7 +78,7 @@ public static class ScholarshipApplicationEndpoints
         return TypedResults.Ok(myScholarshipApplicationsDto);
     }
 
-    private static async Task<IResult> GetScholarshipApplications(ScholarshipApplicationService scholarshipApplicationService)
+    private static async Task<IResult> GetScholarshipApplications(ApplicationService scholarshipApplicationService)
     {
         var scholarshipApplicationsDto = await scholarshipApplicationService.GetScholarshipApplications();
 
@@ -86,7 +88,7 @@ public static class ScholarshipApplicationEndpoints
     private static async Task<IResult> UpdateScholarshipApplication(
         int id, 
         PatchScholarshipApplicationDto dto, 
-        ScholarshipApplicationService scholarshipApplicationService)
+        ApplicationService scholarshipApplicationService)
     {
         if(id <= 0) 
             return TypedResults.BadRequest("ID must be greater than 0");
@@ -98,7 +100,7 @@ public static class ScholarshipApplicationEndpoints
             : TypedResults.NoContent();
     }
 
-    private static async Task<IResult> DeleteScholarshipApplication(int id, ScholarshipApplicationService scholarshipApplicationService)
+    private static async Task<IResult> DeleteScholarshipApplication(int id, ApplicationService scholarshipApplicationService)
     {
         if(id <= 0) 
             return TypedResults.BadRequest("ID must be greater than 0");

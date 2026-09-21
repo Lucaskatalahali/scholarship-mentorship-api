@@ -7,5 +7,6 @@ public record PaymentResponseDto(
     DateOnly BillingPeriod,
     int UserId,
     string UserName,
-    string UserEmail // User email acaba descrevendo melhor quem pagou
+    string UserEmail, // User email acaba descrevendo melhor quem pagou
+    string? Description
 );

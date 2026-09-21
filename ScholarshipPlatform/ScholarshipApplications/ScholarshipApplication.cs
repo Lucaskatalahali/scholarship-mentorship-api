@@ -1,3 +1,4 @@
+using ScholarshipPlatform.Courses;
 using ScholarshipPlatform.Scholarships;
 using ScholarshipPlatform.Users;
 
@@ -12,4 +13,10 @@ public class ScholarshipApplication
     public int? UserId {get; set;}
     public Scholarship Scholarship {get; set;} = null!;
     public int ScholarshipId {get; set;}
+
+    // Cursos escolhidos pelo candidato nesta candidatura
+    public List<Course> SelectedCourses {get; set;} = [];
+
+    //Cursos onde ser+a candidatado
+    public List<Course> EnrolledCourses {get; set;} = [];
 }

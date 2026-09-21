@@ -59,7 +59,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ScholarshipService>();
-builder.Services.AddScoped<ScholarshipApplicationService>();
+builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); //AddTransient?
@@ -120,7 +120,7 @@ using (var scope = app.Services.CreateScope())
 
 app.MapUserEndpoints();
 app.MapScholarshipEndpoints();
-app.MapScholarshipApplicationEndpoints();
+app.MapApplicationEndpoints();
 app.MapPaymentEndpoints();
 app.MapAuthenticationEndpoints()
 ;

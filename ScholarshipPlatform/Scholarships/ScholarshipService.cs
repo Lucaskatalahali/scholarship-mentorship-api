@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ScholarshipPlatform.Courses.Dtos;
 using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Scholarships.Dtos;
 using ScholarshipPlatform.Users;
@@ -41,7 +42,9 @@ public class ScholarshipService
             scholarship.Id,
             scholarship.Name,
             scholarship.Country,
-            scholarship.Courses,
+            scholarship.Courses
+                .Select(c => new CourseResponseDto(c.Id, c.Name))
+                .ToList(),
             scholarship.Description,
             scholarship.Deadline,
             dto.Eligibility,
@@ -58,7 +61,9 @@ public class ScholarshipService
             s.Id,
             s.Name,
             s.Country,
-            s.Courses,
+            s.Courses
+                .Select(c => new CourseResponseDto(c.Id, c.Name))
+                .ToList(),
             s.Description,
             s.Deadline,
             s.Eligibility,
@@ -75,7 +80,9 @@ public class ScholarshipService
                 s.Id,
                 s.Name,
                 s.Country,
-                s.Courses,
+                s.Courses
+                    .Select(c => new CourseResponseDto(c.Id, c.Name))
+                    .ToList(),
                 s.Description,
                 s.Deadline,
                 s.Eligibility,
@@ -105,6 +112,7 @@ public class ScholarshipService
             {
                 return false; //Um ou mais cursos informados não existem.
             }
+
             scholarship.Courses = newCourses;
         }
 
@@ -121,14 +129,18 @@ public class ScholarshipService
         return true;
     }
 
-    public async Task<bool> DeleteScholarship(int id)
+    public async Task<bool?> DeleteScholarship(int id)
     {
         var scholarship = await _db.Scholarships.FindAsync(id);
 
         if(scholarship is null) return false;
 
+        var existApplication = await _db.ScholarshipApplications
+            .AnyAsync(x => x.ScholarshipId == scholarship.Id);
+            
+        if(existApplication) return false;
+        
         _db.Scholarships.Remove(scholarship);
-
         await _db.SaveChangesAsync();
 
         return true;

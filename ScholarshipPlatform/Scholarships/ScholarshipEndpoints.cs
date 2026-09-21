@@ -90,10 +90,18 @@ public static class ScholarshipEndpoins
     {
         if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
 
-        var wasDeleted = await scholarshipService.DeleteScholarship(id);
+        var result = await scholarshipService.DeleteScholarship(id);
 
-        return wasDeleted
-            ? TypedResults.NoContent()
-            : TypedResults.NotFound();
+        if(result is null)
+            return TypedResults.NoContent();
+        
+        if(result.Value == false)
+        {
+           return TypedResults.Conflict(
+                "Esta bolsa não pode ser removida porque possui candidaturas."
+            ); 
+        }
+            
+        return TypedResults.NotFound();
     }
 }

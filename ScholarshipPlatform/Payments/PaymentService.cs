@@ -52,6 +52,7 @@ public class PaymentService
             Amount = dto.Amount,
             BillingPeriod = dto.BillingPeriod,
             PaymentDate = DateOnly.FromDateTime(DateTime.Today),
+            Description = dto.Description,
             UserId = user.Id
         };
 
@@ -71,7 +72,8 @@ public class PaymentService
             payment.BillingPeriod,
             user.Id,
             user.Name,
-            user.Email!
+            user.Email!,
+            payment.Description
         );
 
         return ServiceResult<PaymentResponseDto>.Success(paymentResponseDto);
@@ -88,7 +90,8 @@ public class PaymentService
             p.BillingPeriod,
             p.User.Id,
             p.User.Name,
-            p.User.Email!
+            p.User.Email!,
+            p.Description
         )).FirstOrDefaultAsync();
 
         return paymentResponseDto;
@@ -104,7 +107,8 @@ public class PaymentService
                 p.BillingPeriod,
                 p.User.Id,
                 p.User.Name,
-                p.User.Email!
+                p.User.Email!,
+                p.Description
             )).ToListAsync();
     }
 
@@ -156,7 +160,8 @@ public class PaymentService
                 p.BillingPeriod,
                 p.User.Id,
                 p.User.Name,
-                p.User.Email!
+                p.User.Email!,
+                p.Description
             )).ToListAsync();
     }
 

@@ -2,8 +2,8 @@ namespace ScholarshipPlatform.Users;
 
 public enum AccountStatus
 {
-    RegistrationPending,
-    Active, 
-    SuspendedByDebt, 
-    SuspendedVoluntarily
+    RegistrationPending = 0,
+    Active = 1, 
+    SuspendedByDebt = 2, 
+    SuspendedVoluntarily = 3
 }

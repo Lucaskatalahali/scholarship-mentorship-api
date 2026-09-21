@@ -221,13 +221,8 @@ public class UserService
 
         if(user == null) return null;
 
-        if(
-            user.AccountStatus != AccountStatus.Active ||
-            user.AccountStatus != AccountStatus.RegistrationPending
-        )
-        {
+        if(user.AccountStatus != AccountStatus.Active)
             return false; //A conta já está suspensa por algum motivo
-        }
             
         // A conta está ativa e pode ser suspensa voluntariamente.
         //Contas pendentes não podem pedir suspensão
@@ -244,8 +239,13 @@ public class UserService
 
         if(user == null) return null;
 
-        if(user.AccountStatus == AccountStatus.Active)
-            return false; //A conta já está activa
+        if(user.AccountStatus == AccountStatus.Active ||
+            user.AccountStatus == AccountStatus.RegistrationPending
+        )
+        {
+            return false; //A conta já está activa ou aguarda aprovação de registro
+        }
+            
 
         // A conta está suspensa e pode ser reactivada sob uma justificativa prévia
         user.AccountStatus = AccountStatus.Active;
