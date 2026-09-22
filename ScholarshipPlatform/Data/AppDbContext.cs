@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<ScholarshipApplication> ScholarshipApplications => Set<ScholarshipApplication>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Course> Courses => Set<Course>();
+    public DbSet<UserDocument> UserDocuments => Set<UserDocument>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -63,6 +64,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
                 .HasMaxLength(50);
 
             entity.ComplexProperty(u => u.Address);
+        });
+
+        builder.Entity<UserDocument>(entity =>
+        {
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(d => d.DocumentType)
+                .HasConversion<string>()
+                .HasMaxLength(40);
+
+            entity.Property(d => d.OriginalFileName).HasMaxLength(255);
+            entity.Property(d => d.StoredFileName).HasMaxLength(255);
+            entity.Property(d => d.ContentType).HasMaxLength(100);
         });
     }
 }

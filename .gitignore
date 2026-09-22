@@ -427,3 +427,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Armazenamento local de uploads e dados de aplicação
+App_Data/
+StorageUploads/
+
+# Arquivos de ambiente local com segredos eventuais
+appsettings.Production.json
+*.local.json

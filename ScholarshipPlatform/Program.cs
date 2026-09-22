@@ -15,6 +15,8 @@ using System.Text;
 using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.Authentication;
 using ScholarshipPlatform.Email;
+using ScholarshipPlatform.Courses;
+using ScholarshipPlatform.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +66,9 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); //AddTransient?
 builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<CourseService>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<DocumentService>();
 
 
 // Para serializar enums como strings, em vez de seus valores inteiros.
@@ -122,8 +127,9 @@ app.MapUserEndpoints();
 app.MapScholarshipEndpoints();
 app.MapApplicationEndpoints();
 app.MapPaymentEndpoints();
-app.MapAuthenticationEndpoints()
-;
+app.MapAuthenticationEndpoints();
+app.MapCourseEndpoints();
+app.MapDocumentEndpoints();
 app.Run();
 
 

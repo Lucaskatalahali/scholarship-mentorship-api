@@ -33,7 +33,6 @@ public static class AuthenticationEndpoints
             return TypedResults.ValidationProblem(validationResult.ToDictionary());
 
         var token = await authenticationService.Login(dto);
-        Console.WriteLine(token);
 
         return token is null
             ? TypedResults.Unauthorized()
