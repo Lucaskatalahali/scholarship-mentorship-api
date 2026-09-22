@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Courses;
+using ScholarshipPlatform.Notifications;
 using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.ScholarshipApplications;
 using ScholarshipPlatform.Scholarships;
@@ -20,6 +21,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<UserDocument> UserDocuments => Set<UserDocument>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -80,6 +82,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             entity.Property(d => d.OriginalFileName).HasMaxLength(255);
             entity.Property(d => d.StoredFileName).HasMaxLength(255);
             entity.Property(d => d.ContentType).HasMaxLength(100);
+
+
+        });
+
+        builder.Entity<Notification>(entity =>
+        {
+            entity.HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(n => n.Title).HasMaxLength(150);
+            entity.Property(n => n.Message).HasMaxLength(1000);
+
+            // Índice para acelerar a busca de notificações não lidas por usuário
+            entity.HasIndex(n => new { n.UserId, n.IsRead });
         });
     }
 }

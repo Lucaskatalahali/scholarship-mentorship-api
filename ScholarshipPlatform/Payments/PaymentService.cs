@@ -165,34 +165,26 @@ public class PaymentService
             )).ToListAsync();
     }
 
-    public async Task ProcessPreviousPeriodPayments()
+    public async Task<int> ProcessPreviousPeriodPayments()
     {
-        var previousMonth = DateTime.Today.AddMonths(-1); //last month
-
-        var previousPeriod  = new DateOnly(
-            previousMonth.Year,
-            previousMonth.Month,
-            1
-            );
+        var nowUtc = DateTime.UtcNow;
+        var previousMonth = nowUtc.AddMonths(-1);
+        var previousPeriod = new DateOnly(previousMonth.Year, previousMonth.Month, 1);
 
         var mentorandoRoleId = await _db.Roles
             .Where(r => r.Name == "Mentorando")
             .Select(r => r.Id)
             .SingleAsync();
 
-        var usersWithoutPayment = await _db.Users
-            .Where(u => u.AccountStatus == AccountStatus.Active && _db.UserRoles.Any(r =>
-                r.UserId == u.Id &&
-                r.RoleId == mentorandoRoleId))
-            .Where(u => !_db.Payments.Any(p =>
-                p.UserId == u.Id &&
+        var suspendedCount = await _db.Users
+            .Where(u => u.AccountStatus == AccountStatus.Active && 
+                _db.UserRoles.Any(r => r.UserId == u.Id && r.RoleId == mentorandoRoleId))
+            .Where(u => !_db.Payments.Any(p => 
+                p.UserId == u.Id && 
                 p.BillingPeriod == previousPeriod))
-            .ToListAsync();
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(u => u.AccountStatus, AccountStatus.SuspendedByDebt));
 
-        foreach(var user in usersWithoutPayment)
-        {
-            user.AccountStatus = AccountStatus.SuspendedByDebt;
-            await _userManager.UpdateAsync(user);
-        }        
+        return suspendedCount;
     }
 }

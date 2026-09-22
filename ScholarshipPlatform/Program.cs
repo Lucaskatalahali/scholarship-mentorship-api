@@ -17,6 +17,7 @@ using ScholarshipPlatform.Authentication;
 using ScholarshipPlatform.Email;
 using ScholarshipPlatform.Courses;
 using ScholarshipPlatform.Storage;
+using ScholarshipPlatform.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,16 +60,18 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Injeção de dependência:
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ScholarshipService>();
 builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<PaymentService>();
-builder.Services.AddScoped<IEmailService, EmailService>(); //AddTransient?
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<DocumentService>();
+builder.Services.AddScoped<NotificationService>();
 
 
 // Para serializar enums como strings, em vez de seus valores inteiros.
@@ -130,6 +133,8 @@ app.MapPaymentEndpoints();
 app.MapAuthenticationEndpoints();
 app.MapCourseEndpoints();
 app.MapDocumentEndpoints();
+app.MapNotificationEndpoints();
+
 app.Run();
 
 

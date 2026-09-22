@@ -33,6 +33,15 @@ public class ApplicationService
                 });
         }
 
+        if(user.AccountStatus != AccountStatus.Active)
+        {
+            return ServiceResult<ApplicationResponseDto>.Failure(
+                new Dictionary<string, string[]>
+                {
+                    ["User"] = ["Não pode aplicar porque o usuário está suspenso."]
+                });
+        }
+
         var scholarship = await _db.Scholarships
             .Include(s => s.Courses)
             .FirstOrDefaultAsync(s => s.Id == dto.ScholarshipId);

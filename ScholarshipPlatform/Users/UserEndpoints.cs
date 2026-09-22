@@ -60,7 +60,6 @@ public static class UserEndpoints
         }
 
         return TypedResults.Created($"/users/{result.Data!.Id}", result.Data); //Data is userDto
-        //Após o registro, informar o user pra verificar seu email (talvez pelo frontend)
     }
 
     private static async Task<IResult> ApproveRegistration(int id, UserService userService)
