@@ -113,5 +113,40 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             // Índice no token para busca instantânea ao clicar no link de descadastro
             entity.HasIndex(n => n.UnsubscribeToken).IsUnique();
         });
+
+        builder.Entity<Feedback>(entity =>
+        {
+            //se o usuário for deletado, mantemos o feedback
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.Property(f => f.Type)
+                .HasConversion<string>()
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(f => f.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(f => f.Message)
+                .HasMaxLength(2000)
+                .IsRequired();
+
+            entity.Property(f => f.ContactEmail)
+                .HasMaxLength(150);
+
+            entity.Property(f => f.ContactName)
+                .HasMaxLength(100);
+
+            entity.Property(f => f.PageUrl)
+                .HasMaxLength(300);
+
+            // Índice para agilizar a filtragem do Admin por status e tipo
+            entity.HasIndex(f => new { f.Status, f.Type });
+        });
     }
 }
