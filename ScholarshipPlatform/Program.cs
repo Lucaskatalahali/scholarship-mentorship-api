@@ -138,6 +138,7 @@ app.MapAuthenticationEndpoints();
 app.MapCourseEndpoints();
 app.MapDocumentEndpoints();
 app.MapNotificationEndpoints();
+app.MapNewsletterEndpoints();
 
 app.Run();
 

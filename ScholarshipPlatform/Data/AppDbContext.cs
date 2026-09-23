@@ -22,7 +22,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<UserDocument> UserDocuments => Set<UserDocument>();
     public DbSet<Notification> Notifications => Set<Notification>();
-
+    public DbSet<NewsletterSubscription> NewsletterSubscriptions => Set<NewsletterSubscription>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -98,6 +98,18 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 
             // Índice para acelerar a busca de notificações não lidas por usuário
             entity.HasIndex(n => new { n.UserId, n.IsRead });
+        });
+
+        builder.Entity<NewsletterSubscription>(entity =>
+        {
+            entity.Property(n => n.Email).HasMaxLength(256).IsRequired();
+            entity.Property(n => n.UnsubscribeToken).HasMaxLength(64).IsRequired();
+
+            // Índice único no e-mail para evitar duplicidade de inscrições
+            entity.HasIndex(n => n.Email).IsUnique();
+
+            // Índice no token para busca instantânea ao clicar no link de descadastro
+            entity.HasIndex(n => n.UnsubscribeToken).IsUnique();
         });
     }
 }

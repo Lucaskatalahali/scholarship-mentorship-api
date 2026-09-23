@@ -21,10 +21,10 @@ public class NotificationService
     {
         var filter = dto.Filter;
 
-        // Inicia a consulta base com usuários ativos
+        // 1. Inicia a consulta base com usuários ativos
         var query = _db.Users.AsNoTracking().Where(u => u.AccountStatus == AccountStatus.Active);
 
-        // Garante que critérios acadêmicos e financeiros afetem apenas quem é Mentorando
+        // 2. Garante que critérios acadêmicos e financeiros afetem apenas quem é Mentorando
         bool requiresMentorandoRole = 
             filter.OnlyUnpaidLastMonth == true || 
             filter.MinGpa.HasValue || 
@@ -39,7 +39,7 @@ public class NotificationService
                 _db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Mentorando")));
         }
 
-        // Aplica os filtros específicos
+        // 3. Aplica os filtros específicos de usuários
         if (filter.SpecificUserId.HasValue)
         {
             query = query.Where(u => u.Id == filter.SpecificUserId.Value);
@@ -86,32 +86,33 @@ public class NotificationService
             }
         }
 
-        // Projeta apenas os campos estritamente necessários
+        // 4. Busca os usuários internos alvo
         var targetUsers = await query
             .Select(u => new { u.Id, u.Email, u.Name })
             .ToListAsync();
 
-        if (targetUsers.Count == 0)
+        // 5. Criação em lote das notificações internas (sininho) se houver usuários internos
+        if (targetUsers.Count > 0)
         {
-            return new SendNotificationResultDto(0, "Nenhum usuário corresponde aos critérios selecionados.");
+            var notifications = targetUsers.Select(u => new Notification
+            {
+                UserId = u.Id,
+                Title = dto.Title,
+                Message = dto.Message,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            }).ToList();
+
+            _db.Notifications.AddRange(notifications);
+            await _db.SaveChangesAsync();
         }
 
-        // Criação em lote (Batch Insert) das notificações internas
-        var notifications = targetUsers.Select(u => new Notification
-        {
-            UserId = u.Id,
-            Title = dto.Title,
-            Message = dto.Message,
-            CreatedAt = DateTime.UtcNow,
-            IsRead = false
-        }).ToList();
+        int subscribersNotifiedCount = 0;
 
-        _db.Notifications.AddRange(notifications);
-        await _db.SaveChangesAsync();
-
-        // Envio opcional via e-mail
+        // 6. Envio de e-mails
         if (dto.SendEmail)
         {
+            // E-mails para usuários internos
             foreach (var user in targetUsers)
             {
                 if (!string.IsNullOrWhiteSpace(user.Email))
@@ -119,11 +120,38 @@ public class NotificationService
                     await _emailService.SendEmailAsync(user.Email, dto.Title, dto.Message);
                 }
             }
+
+            // E-mails para assinantes da newsletter (se solicitado)
+            if (filter.IncludeSubscribers)
+            {
+                var subscribers = await _db.NewsletterSubscriptions
+                    .AsNoTracking()
+                    .Where(s => s.IsActive)
+                    .Select(s => new { s.Email, s.UnsubscribeToken })
+                    .ToListAsync();
+
+                subscribersNotifiedCount = subscribers.Count;
+
+                foreach (var sub in subscribers)
+                {
+                    var unsubscribeFooter = $"\n\nPara cancelar o recebimento de alertas, acesse o link:\nhttps://localhost:5274/newsletter/unsubscribe/{sub.UnsubscribeToken}";
+                    var fullMessage = dto.Message + unsubscribeFooter;
+
+                    await _emailService.SendEmailAsync(sub.Email, dto.Title, fullMessage);
+                }
+            }
+        }
+
+        int totalDelivered = targetUsers.Count + subscribersNotifiedCount;
+
+        if (totalDelivered == 0)
+        {
+            return new SendNotificationResultDto(0, "Nenhum usuário ou assinante corresponde aos critérios selecionados.");
         }
 
         return new SendNotificationResultDto(
-            targetUsers.Count,
-            $"Notificação entregue com sucesso para {targetUsers.Count} usuário(s)."
+            totalDelivered,
+            $"Notificação processada com sucesso: {targetUsers.Count} usuário(s) interno(s) e {subscribersNotifiedCount} assinante(s) de newsletter."
         );
     }
 
