@@ -113,19 +113,22 @@ app.UseCors("TestClient");
 app.UseAuthentication();
 app.UseAuthorization();
 
-//Começar o app com as Roles
+// Começar o app com as Roles
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider
         .GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILogger<Program>>();
 
     string[] roles = ["Mentorando", "Mentor", "Admin"];
 
-    foreach(var role in roles)
+    foreach (var role in roles)
     {
-        if(!await roleManager.RoleExistsAsync(role))
+        if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole<int>(role));
+            logger.LogInformation("Role de sistema criada: {Role}", role);
         }
     }
 }

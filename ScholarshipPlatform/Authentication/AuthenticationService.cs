@@ -5,6 +5,7 @@ using ScholarshipPlatform.Authentication.Dtos;
 using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Email;
 using ScholarshipPlatform.Users;
+
 namespace ScholarshipPlatform.Authentication;
 
 public class AuthenticationService
@@ -12,33 +13,53 @@ public class AuthenticationService
     private readonly UserManager<User> _userManager;
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
-    private AppDbContext _db;
+    private readonly ILogger<AuthenticationService> _logger;
 
-    public AuthenticationService(UserManager<User> userManager, ITokenService tokenService, AppDbContext db, IEmailService emailService)
+    public AuthenticationService(
+        UserManager<User> userManager, 
+        ITokenService tokenService, 
+        AppDbContext db, 
+        IEmailService emailService,
+        ILogger<AuthenticationService> logger)
     {
         _userManager = userManager;
         _tokenService = tokenService;
-        _db = db;
         _emailService = emailService;
+        _logger = logger;
     }
-
     
     public async Task<string?> Login(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
 
-        if(user is null) return null;
-
-        if(
-            !await _userManager.IsEmailConfirmedAsync(user) ||
-            user.AccountStatus == AccountStatus.RegistrationPending ||
-            !await _userManager.CheckPasswordAsync(user, dto.Password)
-        )
+        if (user is null)
         {
+            _logger.LogWarning("Tentativa de login com e-mail inexistente: {Email}", dto.Email);
+            return null;
+        }
+
+        if (!await _userManager.IsEmailConfirmedAsync(user))
+        {
+            _logger.LogWarning("Login bloqueado: E-mail não confirmado para o usuário {UserId} ({Email})", user.Id, user.Email);
+            return null;
+        }
+
+        if (user.AccountStatus == AccountStatus.RegistrationPending)
+        {
+            _logger.LogWarning("Login bloqueado: Conta com registro pendente de aprovação para o usuário {UserId}", user.Id);
+            return null;
+        }
+
+        if (!await _userManager.CheckPasswordAsync(user, dto.Password))
+        {
+            _logger.LogWarning("Tentativa de login com senha incorreta para o usuário {UserId} ({Email})", user.Id, user.Email);
             return null;
         }
 
         var roles = await _userManager.GetRolesAsync(user);
+
+        _logger.LogInformation("Usuário {UserId} ({Email}) autenticado com sucesso. Roles: {Roles}", 
+            user.Id, user.Email, string.Join(", ", roles));
 
         return _tokenService.GenerateToken(user, roles);
     }
@@ -47,23 +68,34 @@ public class AuthenticationService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
-        if(user is null) return false;
-
-        // Decodificação do token que foi previamente codificada para transporte em URL
+        if (user is null)
+        {
+            _logger.LogWarning("Confirmação de e-mail falhou: Usuário {UserId} não encontrado", userId);
+            return false;
+        }
 
         try
         {
             var decodedToken = Encoding.UTF8.GetString(
-            WebEncoders.Base64UrlDecode(token)
-        );
+                WebEncoders.Base64UrlDecode(token)
+            );
 
-        var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
 
-        return result.Succeeded;
-            
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("E-mail confirmado com sucesso para o usuário {UserId}", user.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Token inválido ou expirado na confirmação de e-mail para o usuário {UserId}", user.Id);
+            }
+
+            return result.Succeeded;
         }
-        catch(FormatException)
+        catch (FormatException)
         {
+            _logger.LogWarning("Token com formato corrompido na confirmação de e-mail para o usuário {UserId}", user.Id);
             return false;
         }
     }
@@ -72,7 +104,7 @@ public class AuthenticationService
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
 
-        if(user is null || user.EmailConfirmed) return false;
+        if (user is null || user.EmailConfirmed) return false;
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -88,6 +120,8 @@ public class AuthenticationService
             $"Click this link to confirm your email: {confirmationLink}"
         );
         
+        _logger.LogInformation("Reenvio de link de confirmação de e-mail solicitado para o usuário {UserId}", user.Id);
+
         return true;
     }
 
@@ -95,7 +129,11 @@ public class AuthenticationService
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
 
-        if(user is null) return;
+        if (user is null)
+        {
+            _logger.LogInformation("Recuperação de senha solicitada para e-mail não cadastrado: {Email}", dto.Email);
+            return;
+        }
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
@@ -110,15 +148,20 @@ public class AuthenticationService
             "Password Reset Request",
             $"Click this link to reset your password: {resetLink}"
         );
+
+        _logger.LogInformation("Link de recuperação de senha gerado e enviado para o usuário {UserId}", user.Id);
     }
 
     public async Task<bool> ResetPassword(ResetPasswordDto dto)
     {
         var user = await _userManager.FindByIdAsync(dto.UserId.ToString());
 
-        if(user is null) return false;
+        if (user is null)
+        {
+            _logger.LogWarning("Redefinição de senha falhou: Usuário {UserId} não encontrado", dto.UserId);
+            return false;
+        }
 
-         // Decodificação do token que foi previamente codificada para transporte em URL
         try
         {
             var decodedToken = Encoding.UTF8.GetString(
@@ -131,10 +174,21 @@ public class AuthenticationService
                 dto.NewPassword
             );
 
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Senha redefinida com sucesso para o usuário {UserId}", user.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Falha ao redefinir senha para o usuário {UserId}. Erros do Identity: {Errors}", 
+                    user.Id, string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
             return result.Succeeded;
         }
         catch (FormatException)
         {
+            _logger.LogWarning("Token com formato inválido na redefinição de senha para o usuário {UserId}", dto.UserId);
             return false;
         }
     }

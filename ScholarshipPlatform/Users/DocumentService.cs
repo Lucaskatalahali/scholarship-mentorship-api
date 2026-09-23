@@ -10,15 +10,20 @@ public class DocumentService
 {
     private readonly AppDbContext _db;
     private readonly IFileStorageService _storageService;
+    private readonly ILogger<DocumentService> _logger;
 
     // Regras de segurança de arquivo
     private static readonly string[] AllowedExtensions = [".pdf", ".png", ".jpg", ".jpeg"];
-    private const long MaxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
+    private const long MaxFileSizeInBytes = 5 * 1024 * 1024; // 5 MB
 
-    public DocumentService(AppDbContext db, IFileStorageService storageService)
+    public DocumentService(
+        AppDbContext db, 
+        IFileStorageService storageService,
+        ILogger<DocumentService> logger)
     {
         _db = db;
         _storageService = storageService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<UserDocumentResponseDto>> UploadDocumentAsync(int userId, UploadDocumentDto dto)
@@ -35,6 +40,9 @@ public class DocumentService
 
         if (file.Length > MaxFileSizeInBytes)
         {
+            _logger.LogWarning("Upload rejeitado para o usuário {UserId}: Tamanho do arquivo ({FileSize} bytes) excede o limite de 10 MB", 
+                userId, file.Length);
+
             return ServiceResult<UserDocumentResponseDto>.Failure(new Dictionary<string, string[]>
             {
                 ["File"] = ["O tamanho do documento excede o limite máximo permitido de 10 MB."]
@@ -44,6 +52,9 @@ public class DocumentService
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.Contains(extension))
         {
+            _logger.LogWarning("Upload rejeitado para o usuário {UserId}: Extensão não permitida '{Extension}'", 
+                userId, extension);
+
             return ServiceResult<UserDocumentResponseDto>.Failure(new Dictionary<string, string[]>
             {
                 ["File"] = ["Formato não suportado. Envie ficheiros PDF, PNG, JPG ou JPEG."]
@@ -65,6 +76,9 @@ public class DocumentService
 
         _db.UserDocuments.Add(document);
         await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Documento {DocumentId} ({DocumentType}) enviado com sucesso pelo usuário {UserId}. Tamanho: {FileSize} bytes",
+            document.Id, document.DocumentType, userId, document.FileSizeBytes);
 
         var responseDto = new UserDocumentResponseDto(
             document.Id,
@@ -116,6 +130,9 @@ public class DocumentService
         await _storageService.DeleteFileAsync(document.StoredFileName);
         _db.UserDocuments.Remove(document);
         await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Documento {DocumentId} do usuário {UserId} foi excluído com sucesso", 
+            document.Id, document.UserId);
 
         return true;
     }

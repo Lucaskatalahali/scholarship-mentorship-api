@@ -23,13 +23,19 @@ public class UserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IEmailService _emailService;
-    private AppDbContext _db;
+    private readonly AppDbContext _db;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(UserManager<User> userManager, ITokenService tokenService, AppDbContext db, IEmailService emailService)
+    public UserService(
+        UserManager<User> userManager,
+        AppDbContext db, 
+        IEmailService emailService,
+        ILogger<UserService> logger)
     {
         _userManager = userManager;
         _db = db;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<UserResponseDto>> RegisterUser(CreateUserDto dto)
@@ -62,6 +68,9 @@ public class UserService
 
             if (!result.Succeeded)
             {
+                _logger.LogWarning("Falha ao registrar novo usuário para o e-mail {Email}. Erros do Identity: {Errors}",
+                    dto.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+
                 var errors = result.Errors
                     .GroupBy(e => e.Code)
                     .ToDictionary(
@@ -70,7 +79,6 @@ public class UserService
                     );
 
                 await transaction.RollbackAsync();
-
                 return ServiceResult<UserResponseDto>.Failure(errors);
             }
 
@@ -78,6 +86,8 @@ public class UserService
 
             if (!roleResult.Succeeded)
             {
+                _logger.LogWarning("Falha ao vincular role 'Mentorando' ao usuário {UserId} ({Email})", user.Id, user.Email);
+
                 var errors = roleResult.Errors
                     .GroupBy(e => e.Code)
                     .ToDictionary(
@@ -86,7 +96,6 @@ public class UserService
                     );
 
                 await transaction.RollbackAsync();
-
                 return ServiceResult<UserResponseDto>.Failure(errors);
             }
 
@@ -98,9 +107,9 @@ public class UserService
             throw;
         }
 
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        _logger.LogInformation("Novo usuário registrado com sucesso: {UserId} ({Email}) com role Mentorando", user.Id, user.Email);
 
-        //Codificação adequada para transporte do token em uma URL
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
         var encodedToken = WebEncoders.Base64UrlEncode(
             Encoding.UTF8.GetBytes(token)
@@ -132,21 +141,28 @@ public class UserService
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
 
-        if(user is null) 
+        if (user is null) 
             return ApprovalResult.NotFound;
 
-        if(!await _userManager.IsEmailConfirmedAsync(user))
+        if (!await _userManager.IsEmailConfirmedAsync(user))
+        {
+            _logger.LogWarning("Aprovação rejeitada: Usuário {UserId} tentou ser aprovado sem antes confirmar o e-mail", id);
             return ApprovalResult.EmailNotConfirmed;
+        }
 
-        if(user.AccountStatus == AccountStatus.Active)
+        if (user.AccountStatus == AccountStatus.Active)
             return ApprovalResult.AlreadyApproved;
 
-        if(user.AccountStatus != AccountStatus.RegistrationPending)
-        return ApprovalResult.InvalidStatus;
-            
+        if (user.AccountStatus != AccountStatus.RegistrationPending)
+        {
+            _logger.LogWarning("Aprovação rejeitada: Usuário {UserId} possui status incompatível para aprovação ({Status})", id, user.AccountStatus);
+            return ApprovalResult.InvalidStatus;
+        }
 
         user.AccountStatus = AccountStatus.Active;
         await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation("Registro de conta do usuário {UserId} ({Email}) aprovado com sucesso. Status alterado para Active", user.Id, user.Email);
 
         return ApprovalResult.Success;
     }
@@ -155,7 +171,7 @@ public class UserService
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
 
-        if(user is null) return null;
+        if (user is null) return null;
         
         return new UserResponseDto(
             user.Id,
@@ -172,32 +188,31 @@ public class UserService
     public async Task<List<UserResponseDto>> GetUsers()
     {
         return await _userManager.Users
-        .Select(u => new UserResponseDto(
-            u.Id,
-            u.Name,
-            u.Email!,
-            u.BirthDate,
-            u.Address,
-            u.EducationLevel,
-            u.Average,
-            u.AccountStatus
-            )
-        ).ToListAsync();
+            .Select(u => new UserResponseDto(
+                u.Id,
+                u.Name,
+                u.Email!,
+                u.BirthDate,
+                u.Address,
+                u.EducationLevel,
+                u.Average,
+                u.AccountStatus
+            )).ToListAsync();
     }
 
     public async Task<bool> UpdateUser(int id, PatchUserDto dto)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
 
-        if(user is null) return false;
+        if (user is null) return false;
 
-        if(dto.Name is not null) user.Name = dto.Name.Trim();
-        if(dto.BirthDate is not null) user.BirthDate = dto.BirthDate.Value;
-        if(dto.Average is not null) user.Average = dto.Average.Value;
-        if(dto.Adress.Country is not null) user.Address.Country = dto.Adress.Country;
-        if(dto.Adress.Province is not null) user.Address.Province = dto.Adress.Province;
-        if(dto.Adress.AddressLine is not null) user.Address.AddressLine = dto.Adress.AddressLine;
-        if(dto.EducationLevel.HasValue) user.EducationLevel = dto.EducationLevel.Value;
+        if (dto.Name is not null) user.Name = dto.Name.Trim();
+        if (dto.BirthDate is not null) user.BirthDate = dto.BirthDate.Value;
+        if (dto.Average is not null) user.Average = dto.Average.Value;
+        if (dto.Adress.Country is not null) user.Address.Country = dto.Adress.Country;
+        if (dto.Adress.Province is not null) user.Address.Province = dto.Adress.Province;
+        if (dto.Adress.AddressLine is not null) user.Address.AddressLine = dto.Adress.AddressLine;
+        if (dto.EducationLevel.HasValue) user.EducationLevel = dto.EducationLevel.Value;
 
         var result = await _userManager.UpdateAsync(user);
 
@@ -208,9 +223,14 @@ public class UserService
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
 
-        if(user is null) return false;
+        if (user is null) return false;
         
         var result = await _userManager.DeleteAsync(user);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("Usuário {UserId} excluído do sistema", id);
+        }
 
         return result.Succeeded;
     }
@@ -219,16 +239,19 @@ public class UserService
     {
         var user = await _userManager.FindByEmailAsync(userEmail);
 
-        if(user == null) return null;
+        if (user == null) return null;
 
-        if(user.AccountStatus != AccountStatus.Active)
-            return false; //A conta já está suspensa por algum motivo
+        if (user.AccountStatus != AccountStatus.Active)
+            return false;
             
-        // A conta está ativa e pode ser suspensa voluntariamente.
-        //Contas pendentes não podem pedir suspensão
         user.AccountStatus = AccountStatus.SuspendedVoluntarily;
 
         var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("Usuário {UserId} ({Email}) teve sua conta suspensa voluntariamente", user.Id, user.Email);
+        }
 
         return result.Succeeded; 
     }
@@ -237,20 +260,22 @@ public class UserService
     {
         var user = await _userManager.FindByEmailAsync(userEmail);
 
-        if(user == null) return null;
+        if (user == null) return null;
 
-        if(user.AccountStatus == AccountStatus.Active ||
-            user.AccountStatus == AccountStatus.RegistrationPending
-        )
+        if (user.AccountStatus == AccountStatus.Active ||
+            user.AccountStatus == AccountStatus.RegistrationPending)
         {
-            return false; //A conta já está activa ou aguarda aprovação de registro
+            return false;
         }
-            
 
-        // A conta está suspensa e pode ser reactivada sob uma justificativa prévia
         user.AccountStatus = AccountStatus.Active;
 
         var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("Conta do usuário {UserId} ({Email}) reativada com sucesso. Status alterado para Active", user.Id, user.Email);
+        }
 
         return result.Succeeded; 
     }

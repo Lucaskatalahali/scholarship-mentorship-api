@@ -10,21 +10,26 @@ public class NotificationService
 {
     private readonly AppDbContext _db;
     private readonly IEmailService _emailService;
+    private readonly ILogger<NotificationService> _logger; 
 
-    public NotificationService(AppDbContext db, IEmailService emailService)
+    public NotificationService(
+        AppDbContext db, 
+        IEmailService emailService,
+        ILogger<NotificationService> logger) 
     {
         _db = db;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<SendNotificationResultDto> DispatchNotificationAsync(SendNotificationRequestDto dto)
     {
         var filter = dto.Filter;
 
-        // 1. Inicia a consulta base com usuários ativos
+        //Inicia a consulta base com usuários ativos
         var query = _db.Users.AsNoTracking().Where(u => u.AccountStatus == AccountStatus.Active);
 
-        // 2. Garante que critérios acadêmicos e financeiros afetem apenas quem é Mentorando
+        // Garante que critérios acadêmicos e financeiros afetem apenas quem é Mentorando
         bool requiresMentorandoRole = 
             filter.OnlyUnpaidLastMonth == true || 
             filter.MinGpa.HasValue || 
@@ -39,7 +44,7 @@ public class NotificationService
                 _db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Mentorando")));
         }
 
-        // 3. Aplica os filtros específicos de usuários
+        // Aplica os filtros específicos de usuários
         if (filter.SpecificUserId.HasValue)
         {
             query = query.Where(u => u.Id == filter.SpecificUserId.Value);
@@ -86,12 +91,12 @@ public class NotificationService
             }
         }
 
-        // 4. Busca os usuários internos alvo
+        // Busca os usuários internos alvo
         var targetUsers = await query
             .Select(u => new { u.Id, u.Email, u.Name })
             .ToListAsync();
 
-        // 5. Criação em lote das notificações internas (sininho) se houver usuários internos
+        // Criação em lote das notificações internas (sininho) se houver usuários internos
         if (targetUsers.Count > 0)
         {
             var notifications = targetUsers.Select(u => new Notification
@@ -109,7 +114,7 @@ public class NotificationService
 
         int subscribersNotifiedCount = 0;
 
-        // 6. Envio de e-mails
+        // Envio de e-mails
         if (dto.SendEmail)
         {
             // E-mails para usuários internos
@@ -146,8 +151,15 @@ public class NotificationService
 
         if (totalDelivered == 0)
         {
+            // Log de aviso: admin tentou disparar campanha mas nenhum usuário deu match
+            _logger.LogWarning("Disparo de notificações cancelado: Nenhum destinatário correspondeu aos filtros aplicados para o título '{Title}'", dto.Title);
             return new SendNotificationResultDto(0, "Nenhum usuário ou assinante corresponde aos critérios selecionados.");
         }
+
+        // Log informativo crítico: registra quem disparou o lote e o volume alcançado
+        _logger.LogInformation(
+            "Disparo de notificações concluído com sucesso. Total: {TotalDelivered} (Internos: {InternalCount}, Newsletter: {SubscribersCount}). Título: '{Title}'",
+            totalDelivered, targetUsers.Count, subscribersNotifiedCount, dto.Title);
 
         return new SendNotificationResultDto(
             totalDelivered,
