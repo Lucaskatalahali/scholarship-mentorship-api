@@ -18,6 +18,7 @@ using ScholarshipPlatform.Email;
 using ScholarshipPlatform.Courses;
 using ScholarshipPlatform.Storage;
 using ScholarshipPlatform.Notifications;
+using ScholarshipPlatform.Common.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,9 @@ builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<NotificationService>();
 
+//Registro dos serviços de ProblemDetails e ExceptionHandler
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Para serializar enums como strings, em vez de seus valores inteiros.
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -92,8 +96,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Pipeline HTTP e Documentação,
 if (app.Environment.IsDevelopment())
@@ -107,7 +112,6 @@ app.UseCors("TestClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 //Começar o app com as Roles
 using (var scope = app.Services.CreateScope())
@@ -136,8 +140,6 @@ app.MapDocumentEndpoints();
 app.MapNotificationEndpoints();
 
 app.Run();
-
-
 
 //Código para trabalhar com Scalar
 internal sealed class BearerSecuritySchemeTransformer(
