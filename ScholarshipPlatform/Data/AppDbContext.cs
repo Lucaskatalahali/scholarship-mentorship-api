@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ScholarshipPlatform.Courses;
+using ScholarshipPlatform.Feedbacks;
 using ScholarshipPlatform.Notifications;
 using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.ScholarshipApplications;
@@ -23,6 +24,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<UserDocument> UserDocuments => Set<UserDocument>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NewsletterSubscription> NewsletterSubscriptions => Set<NewsletterSubscription>();
+    public DbSet<Feedback> Feedbacks => Set<Feedback>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

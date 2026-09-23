@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using ScholarshipPlatform.Authentication;
 using ScholarshipPlatform.Common;
 using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Email;

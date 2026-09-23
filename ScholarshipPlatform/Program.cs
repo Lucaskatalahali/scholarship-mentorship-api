@@ -19,6 +19,7 @@ using ScholarshipPlatform.Courses;
 using ScholarshipPlatform.Storage;
 using ScholarshipPlatform.Notifications;
 using ScholarshipPlatform.Common.Exceptions;
+using ScholarshipPlatform.Feedbacks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,7 @@ builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<FeedbackService>();
 
 //Registro dos serviços de ProblemDetails e ExceptionHandler
 builder.Services.AddProblemDetails();
@@ -142,6 +144,7 @@ app.MapCourseEndpoints();
 app.MapDocumentEndpoints();
 app.MapNotificationEndpoints();
 app.MapNewsletterEndpoints();
+app.MapFeedbackEndpoints();
 
 app.Run();
 
