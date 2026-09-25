@@ -53,8 +53,8 @@ public static class ApplicationEndpoints
 
     private static async Task<IResult> GetScholarshipApplicationById(int id, ApplicationService scholarshipApplicationService)
     {
-        if(id <= 0)
-            return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var scholarshipApplicationDto = await scholarshipApplicationService.GetScholarshipApplicationById(id);
 
@@ -90,8 +90,8 @@ public static class ApplicationEndpoints
         PatchScholarshipApplicationDto dto, 
         ApplicationService scholarshipApplicationService)
     {
-        if(id <= 0) 
-            return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
         
         var wasUpdated = await scholarshipApplicationService.UpdateScholarshipApplication(id, dto);
 
@@ -102,8 +102,8 @@ public static class ApplicationEndpoints
 
     private static async Task<IResult> DeleteScholarshipApplication(int id, ApplicationService scholarshipApplicationService)
     {
-        if(id <= 0) 
-            return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
         
         var wasDeleted = await scholarshipApplicationService.DeleteScholarshipApplication(id);
 

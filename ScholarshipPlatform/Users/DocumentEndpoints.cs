@@ -69,7 +69,8 @@ public static class DocumentEndpoints
         int userId,
         DocumentService documentService)
     {
-        if(userId <= 0) return TypedResults.BadRequest("ID inválido.");
+        if(userId <= 0) 
+            return TypedResults.BadRequest(new { message = "ID inválido." });
 
         var documents = await documentService.GetUserDocumentsAsync(userId);
         return TypedResults.Ok(documents);
@@ -80,10 +81,12 @@ public static class DocumentEndpoints
         ClaimsPrincipal user,
         DocumentService documentService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID inválido.");
+        if(id <= 0) 
+            return TypedResults.BadRequest(new { message = "ID inválido." });
 
         var metadata = await documentService.GetDocumentMetadataAsync(id);
-        if(metadata is null) return TypedResults.NotFound("Documento não encontrado.");
+        if (metadata is null) 
+            return TypedResults.NotFound(new { message = "Documento não encontrado." });
 
         var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -111,7 +114,8 @@ public static class DocumentEndpoints
         ClaimsPrincipal user,
         DocumentService documentService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID inválido.");
+        if(id <= 0) 
+            return TypedResults.BadRequest(new { message = "ID inválido." });
 
         var metadata = await documentService.GetDocumentMetadataAsync(id);
         if(metadata is null) return TypedResults.NotFound();

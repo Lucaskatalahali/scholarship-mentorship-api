@@ -37,15 +37,16 @@ public static class ScholarshipEndpoins
 
         var responseDto = await scholarshipService.CreateScholarship(dto);
 
-        if(responseDto is null) 
-            return TypedResults.BadRequest("Um ou mais cursos informados não existem.");
+        if (responseDto is null) 
+            return TypedResults.BadRequest(new { message = "Um ou mais cursos informados não existem." });
 
         return TypedResults.Created($"/scholarships/{responseDto.Id}", responseDto);
     }
 
     private static async Task<IResult> GetScholarshipById(int id, ScholarshipService scholarshipService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var scholarshipDto = await scholarshipService.GetScholarshipById(id);
 
@@ -68,7 +69,8 @@ public static class ScholarshipEndpoins
         PathScholarshipDtoValidator validator, 
         ScholarshipService scholarshipService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var validationResult = await validator.ValidateAsync(dto);
 
@@ -76,30 +78,31 @@ public static class ScholarshipEndpoins
 
         var result = await scholarshipService.UpdateScholarship(id, dto);
 
-        if(result is null) 
-            return TypedResults.NotFound("Bolsa não encontrada");
-            
-        
-        if(result.Value == false)
-            return TypedResults.BadRequest("Um ou mais cursos informados não existem.");
+        if (result is null) 
+            return TypedResults.NotFound(new { message = "Bolsa não encontrada." });
+
+        if (result.Value == false)
+            return TypedResults.BadRequest(new { message = "Um ou mais cursos informados não existem." });
 
         return TypedResults.NoContent();
     }
 
     private static async Task<IResult> DeleteScholarship(int id, ScholarshipService scholarshipService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var result = await scholarshipService.DeleteScholarship(id);
 
-        if(result is null)
+        if (result is null)
             return TypedResults.NoContent();
         
-        if(result.Value == false)
+        if (result.Value == false)
         {
-           return TypedResults.Conflict(
-                "Esta bolsa não pode ser removida porque possui candidaturas."
-            ); 
+            return TypedResults.Conflict(new 
+            { 
+                message = "Esta bolsa não pode ser removida porque possui candidaturas." 
+            }); 
         }
             
         return TypedResults.NotFound();

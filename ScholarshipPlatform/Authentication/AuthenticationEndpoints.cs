@@ -46,11 +46,11 @@ public static class AuthenticationEndpoints
     {
         var succeeded = await authenticationService.ConfirmEmail(userId, token);
 
-        if(!succeeded) 
-            return TypedResults.BadRequest("Email confirmation failed.");
+    if (!succeeded) 
+                return TypedResults.BadRequest(new {message = "Falha na confirmação do e-mail."});
 
-        return TypedResults.Ok("Email confirmed successfully.");
-    }
+            return TypedResults.Ok(new {message = "E-mail confirmado com sucesso."});
+        }
 
     private static async Task<IResult> ResendEmailConfirmation(
         ResendEmailConfirmationDto dto,
@@ -60,26 +60,29 @@ public static class AuthenticationEndpoints
 
         //if(result == false)
         //it doesn't matter if the result is false or not, return Ok 
-            return TypedResults.Ok(
-                "If the email is registered but not yet confirmed, a new confirmation link has been sent.");
+        return TypedResults.Ok(new 
+        { 
+            message = "Se o e-mail estiver cadastrado e ainda não confirmado, um novo link de confirmação foi enviado." 
+        });
     }
 
     private static async Task<IResult> ForgotPassword(ForgotPasswordDto dto, AuthenticationService authenticationService)
     {
         await authenticationService.ForgotPassword(dto);
 
-        return TypedResults.Ok(
-            "If the email is registered, a password reset link has been sent."
-        );
+        return TypedResults.Ok(new 
+        { 
+            message = "Se o e-mail estiver cadastrado, um link para redefinição de senha foi enviado." 
+        });
     }
 
     private static async Task<IResult> ResetPassword(ResetPasswordDto dto, AuthenticationService authenticationService)
     {
         var succeeded = await authenticationService.ResetPassword(dto);
 
-        if(!succeeded) 
-            return TypedResults.BadRequest("Password reset failed");
+        if (!succeeded) 
+            return TypedResults.BadRequest(new { message = "Falha ao redefinir a senha." });
 
-        return TypedResults.Ok("Password reset successfully.");
+        return TypedResults.Ok(new { message = "Senha redefinida com sucesso." });
     }
 }

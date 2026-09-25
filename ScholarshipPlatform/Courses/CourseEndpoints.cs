@@ -25,14 +25,15 @@ public static class CourseEndpoints
 
     private static async Task<IResult> CreateCourse(CreateCourseDto dto, CourseService courseService)
     {
-        if(string.IsNullOrWhiteSpace(dto.Name))
-            return TypedResults.BadRequest(new { message = "Course name is required" });
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            return TypedResults.BadRequest(new { message = "O nome do curso é obrigatório." });
 
         var result = await courseService.CreateCourse(dto);
 
-        if(result is null) return TypedResults.Conflict("This course is already registered.");
+       if (result is null) 
+            return TypedResults.Conflict(new { message = "Este curso já está cadastrado." });
 
-        return TypedResults.Created();
+        return TypedResults.Created($"/courses/{result.Id}", result);
     }
 
     private static async Task<IResult> GetCourses(CourseService courseService)
@@ -47,16 +48,16 @@ public static class CourseEndpoints
         UpdateCourseDto dto, 
         CourseService courseService)
     {
-        if(string.IsNullOrWhiteSpace(dto.Name))
-            return TypedResults.BadRequest(new { message = "Course name is required" });
+      if (string.IsNullOrWhiteSpace(dto.Name))
+            return TypedResults.BadRequest(new { message = "O nome do curso é obrigatório." });
 
         var result = await courseService.UpdateCourse(id, dto);
+        
+        if (result is null)
+            return TypedResults.NotFound(new { message = "Curso não encontrado." });
 
-        if(result is null) return 
-            TypedResults.NotFound("Course Id not found.");
-
-        if(result.Value == false) 
-            TypedResults.Conflict("This course is already registered");
+        if (result.Value == false)
+            return TypedResults.Conflict(new { message = "Este curso já está cadastrado." });
 
         return TypedResults.NoContent();
     }

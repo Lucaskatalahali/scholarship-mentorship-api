@@ -48,8 +48,8 @@ public static class PaymentEndpoints
 
     private static async Task<IResult> GetPaymentById(int id, PaymentService paymentService)
     {
-        if(id <= 0)
-            return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0)
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var paymentResponseDto = await paymentService.GetPaymentById(id);
 

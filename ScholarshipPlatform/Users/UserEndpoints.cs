@@ -68,32 +68,42 @@ public static class UserEndpoints
 
         return result switch
         {
-        ApprovalResult.Success => 
-            TypedResults.NoContent(),
+            ApprovalResult.Success => 
+                TypedResults.NoContent(),
 
-        ApprovalResult.NotFound => 
-            TypedResults.NotFound(),
+            ApprovalResult.NotFound => 
+                TypedResults.NotFound(),
 
-        ApprovalResult.EmailNotConfirmed => 
-            TypedResults.BadRequest(new 
+            ApprovalResult.EmailNotConfirmed => 
+                TypedResults.BadRequest(new 
+                { 
+                    code = "EmailNotConfirmed", 
+                    message = "Não é possível aprovar o registo: o utilizador ainda não confirmou o seu endereço de e-mail." 
+                }),
+
+            ApprovalResult.AlreadyApproved => 
+                TypedResults.Conflict(new 
+                { 
+                    message = "Este utilizador já se encontra aprovado e ativo." 
+                }),
+
+            ApprovalResult.InvalidStatus => 
+                TypedResults.BadRequest(new 
+                { 
+                    message = "Apenas utilizadores com estado 'RegistrationPending' podem ser aprovados." 
+                }),
+
+            _ => TypedResults.BadRequest(new 
             { 
-                code = "EmailNotConfirmed", 
-                message = "Não é possível aprovar o registo: o utilizador ainda não confirmou o seu endereço de e-mail." 
-            }),
-
-        ApprovalResult.AlreadyApproved => 
-            TypedResults.Conflict("Este utilizador já se encontra aprovado e ativo."),
-
-        ApprovalResult.InvalidStatus => 
-            TypedResults.BadRequest("Apenas utilizadores com estado 'RegistrationPending' podem ser aprovados."),
-
-        _ => TypedResults.BadRequest("Erro ao processar a aprovação do registo.")
+                message = "Erro ao processar a aprovação do registo." 
+            })
         };
     }
 
     private static async Task<IResult> GetUserById(int id, UserService userService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0) 
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var userDto = await userService.GetUserById(id);
 
@@ -131,7 +141,8 @@ private static async Task<IResult> GetCurrentUser(
         PatchUserDtoValidator validator, 
         UserService userService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0) 
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var validationResult = await validator.ValidateAsync(dto);
 
@@ -171,7 +182,8 @@ private static async Task<IResult> GetCurrentUser(
 
     private static async Task<IResult> DeleteUser(int id, UserService userService)
     {
-        if(id <= 0) return TypedResults.BadRequest("ID must be greater than 0");
+        if (id <= 0) 
+            return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var wasDeleted = await userService.DeleteUser(id);
 
@@ -187,9 +199,10 @@ private static async Task<IResult> GetCurrentUser(
         if(result is null) 
             return TypedResults.NotFound();
 
-        if(result.Value == false) 
+        if (result.Value == false) 
             return TypedResults.Problem(
-                "Account has already been suspended or something went wrong while updating");
+                detail: "A conta já se encontra suspensa ou ocorreu um erro ao atualizar o estado.",
+                statusCode: StatusCodes.Status400BadRequest);
 
         return TypedResults.NoContent(); 
     }
@@ -200,10 +213,11 @@ private static async Task<IResult> GetCurrentUser(
 
         if(result is null) 
             return TypedResults.NotFound();
-
-        if(result.Value == false) 
+            
+        if (result.Value == false) 
             return TypedResults.Problem(
-                "Account is already active or something went wrong while updating");
+                detail: "A conta já se encontra ativa ou ocorreu um erro ao atualizar o estado.",
+                statusCode: StatusCodes.Status400BadRequest);
 
         return TypedResults.NoContent(); 
     }

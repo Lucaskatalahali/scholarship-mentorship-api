@@ -29,7 +29,7 @@ public static class NotificationEndpoints
         NotificationService notificationService)
     {
         if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Message))
-            return TypedResults.BadRequest("Título e Mensagem são obrigatórios.");
+            return TypedResults.BadRequest(new { message = "Título e mensagem são obrigatórios." });
 
         var result = await notificationService.DispatchNotificationAsync(dto);
         return TypedResults.Ok(result);
