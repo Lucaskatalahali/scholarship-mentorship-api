@@ -4,7 +4,7 @@ namespace ScholarshipPlatform.Courses;
 
 public static class CourseEndpoints
 {
-    public static RouteGroupBuilder MapCourseEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapCourseEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/courses");
 

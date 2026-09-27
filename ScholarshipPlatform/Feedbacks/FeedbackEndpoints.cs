@@ -5,7 +5,7 @@ namespace ScholarshipPlatform.Feedbacks;
 
 public static class FeedbackEndpoints
 {
-    public static RouteGroupBuilder MapFeedbackEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapFeedbackEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/feedbacks");
 

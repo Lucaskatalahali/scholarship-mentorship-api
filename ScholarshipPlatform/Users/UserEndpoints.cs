@@ -5,7 +5,7 @@ namespace ScholarshipPlatform.Users;
 
 public static class UserEndpoints
 {
-    public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/users");
 

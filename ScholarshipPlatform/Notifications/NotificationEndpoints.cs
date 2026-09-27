@@ -5,7 +5,7 @@ namespace ScholarshipPlatform.Notifications;
 
 public static class NotificationEndpoints
 {
-    public static RouteGroupBuilder MapNotificationEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapNotificationEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/notifications");
 

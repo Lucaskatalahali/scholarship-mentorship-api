@@ -4,7 +4,7 @@ namespace ScholarshipPlatform.Authentication;
 
 public static class AuthenticationEndpoints
 {
-    public static RouteGroupBuilder MapAuthenticationEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapAuthenticationEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/auth");
 
@@ -29,14 +29,14 @@ public static class AuthenticationEndpoints
     {
         var validationResult = await validator.ValidateAsync(dto);
 
-        if(!validationResult.IsValid)
+        if (!validationResult.IsValid)
             return TypedResults.ValidationProblem(validationResult.ToDictionary());
+            
+        var loginResult = await authenticationService.Login(dto);
 
-        var token = await authenticationService.Login(dto);
-
-        return token is null
-            ? TypedResults.Unauthorized()
-            : TypedResults.Ok(new LoginResponseDto(token));
+            return loginResult is null
+                ? TypedResults.Unauthorized()
+                : TypedResults.Ok(loginResult);
     }
 
     private static async Task<IResult> ConfirmEmail(

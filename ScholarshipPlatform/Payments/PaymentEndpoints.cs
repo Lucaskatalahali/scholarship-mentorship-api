@@ -4,7 +4,7 @@ namespace ScholarshipPlatform.Payments;
 
 public static class PaymentEndpoints
 {
-    public static RouteGroupBuilder MapPaymentEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapPaymentEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/payments");
 

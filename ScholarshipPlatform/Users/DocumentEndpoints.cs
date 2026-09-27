@@ -6,7 +6,7 @@ namespace ScholarshipPlatform.Users;
 
 public static class DocumentEndpoints
 {
-    public static RouteGroupBuilder MapDocumentEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapDocumentEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/documents");
 

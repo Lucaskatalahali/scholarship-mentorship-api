@@ -5,6 +5,7 @@ using ScholarshipPlatform.Authentication.Dtos;
 using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Email;
 using ScholarshipPlatform.Users;
+using ScholarshipPlatform.Users.Dtos;
 
 namespace ScholarshipPlatform.Authentication;
 
@@ -28,7 +29,7 @@ public class AuthenticationService
         _logger = logger;
     }
     
-    public async Task<string?> Login(LoginDto dto)
+    public async Task<LoginResponseDto?> Login(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
 
@@ -56,12 +57,25 @@ public class AuthenticationService
             return null;
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
+    var roles = await _userManager.GetRolesAsync(user);
 
         _logger.LogInformation("Usuário {UserId} ({Email}) autenticado com sucesso. Roles: {Roles}", 
             user.Id, user.Email, string.Join(", ", roles));
 
-        return _tokenService.GenerateToken(user, roles);
+        var token = _tokenService.GenerateToken(user, roles);
+
+        var userDto = new UserResponseDto(
+            user.Id,
+            user.Name,
+            user.Email!,
+            user.BirthDate,
+            user.Address,
+            user.EducationLevel,
+            user.Average,
+            user.AccountStatus
+        );
+
+        return new LoginResponseDto(token, userDto);
     }
 
     public async Task<bool> ConfirmEmail(int userId, string token)

@@ -135,16 +135,18 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.MapUserEndpoints();
-app.MapScholarshipEndpoints();
-app.MapApplicationEndpoints();
-app.MapPaymentEndpoints();
-app.MapAuthenticationEndpoints();
-app.MapCourseEndpoints();
-app.MapDocumentEndpoints();
-app.MapNotificationEndpoints();
-app.MapNewsletterEndpoints();
-app.MapFeedbackEndpoints();
+var apiGroup = app.MapGroup("/api");
+
+apiGroup.MapUserEndpoints();
+apiGroup.MapScholarshipEndpoints();
+apiGroup.MapApplicationEndpoints();
+apiGroup.MapPaymentEndpoints();
+apiGroup.MapAuthenticationEndpoints();
+apiGroup.MapCourseEndpoints();
+apiGroup.MapDocumentEndpoints();
+apiGroup.MapNotificationEndpoints();
+apiGroup.MapNewsletterEndpoints();
+apiGroup.MapFeedbackEndpoints();
 
 app.Run();
 
