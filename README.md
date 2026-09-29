@@ -38,14 +38,14 @@ The project avoids generic `Controllers/` and `Models/` folders, keeping code or
 ```
 ScholarshipPlatform/
 ├── Authentication/           # Login, registration, and token handling
-├── Users/                    # User accounts and roles
+├── Users/                    # User accounts and profile data
 ├── Scholarships/             # Scholarship listings and details
 ├── ScholarshipApplications/  # Application submissions and status handling
-├── Notifications/            # System notifications
-├── Email/                    # Transactional email service
-├── Payments/                 # Payment tracking
-├── Courses/                  # Course data and relations
-├── Feedbacks/                # Application feedback
+├── Courses/                  # Courses and educational programs
+├── Payments/                 # Mentee payment records
+├── Feedbacks/                # Public feedback and submission handling
+├── Notifications/            # User notification endpoints and logic
+├── Email/                    # Email delivery service
 ├── Storage/                  # Upload and asset handling
 ├── Common/                   # Shared utilities and base classes
 ├── Data/                     # DbContext and database mappings
