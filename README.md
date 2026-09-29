@@ -76,7 +76,7 @@ Open `https://localhost:<PORT>/scalar/v1` or `/swagger` in your browser.
 ## Main Endpoints
 
 * `POST /api/auth/login` – User authentication & token issuance
-* `GET  /api/scholarships` – List active scholarship listings
+* `GET  /api/scholarships` – List scholarship listings
 * `POST /api/notifications` – Internal notification triggers
 * `GET  /api/payments` – Track payment records
 
