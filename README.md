@@ -8,7 +8,7 @@ A backend RESTful API built to power scholarship management, application workflo
 
 * **Authentication & Authorization:** JWT-based authentication with role support (students, reviewers, admins).
 * **Scholarship Management:** Endpoints for publishing, filtering, and applying to scholarship programs.
-* **Notifications & Email:** Automated status updates and transactional emails dispatched via dedicated services.
+* **Notifications & Email:** Services and endpoints to send emails and store user notifications.
 * **Document & Asset Storage:** Handling file attachments for application submissions.
 * **Payment Records:** Tracking stipend and disbursement histories.
 * **Feedback System:** Reviewer notes and evaluations tied to specific applications.
