@@ -8,7 +8,10 @@ The project uses a **feature-based folder structure** to keep endpoints, models,
 
 ## Features
 
-* **Authentication & Authorization:** JWT-based authentication supporting role management (users, admins).
+* **Authentication & Authorization:** Secure user registration, authentication, and role management (Applicant, Mentor, Admin) using ASP.NET Core Identity and JWT tokens.
+* **Data Validation:** Request validation powered by **FluentValidation** to ensure domain integrity before hitting service layers.
+* **Relational Persistence:** Code-First database design and migrations managed through **Entity Framework Core** and **PostgreSQL**.
+* **Clean Architecture Practices:** Structured Data Transfer Objects (DTOs), dedicated service handlers, and standardized error responses.
 * **Scholarship Management:** Endpoints for browsing, filtering, and applying to scholarship programs.
 * **Courses:** Endpoints for managing available courses and related academic details.
 * **Payment Tracking:** Recording and tracking fees paid by mentees.
