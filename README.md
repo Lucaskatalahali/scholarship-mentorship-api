@@ -2,8 +2,6 @@
 
 A backend RESTful API built to power scholarship management, application workflows, payments, and student-mentor feedback loops. Built on **.NET 10** using **ASP.NET Core Minimal APIs**, **Entity Framework Core**, and **PostgreSQL**, structured around clean **Vertical Slice / Feature-based Architecture**.
 
-The project is organized using a **feature-based folder structure** to keep endpoints, data models, and logic grouped by business domain.
-
 ---
 
 ## Key Features
