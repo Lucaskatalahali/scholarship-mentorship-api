@@ -1,17 +1,20 @@
 # 🎓 Scholarship Platform API
 
-A backend RESTful API built to power scholarship management, application workflows, payments, and student-mentor feedback loops. Built on **.NET 10** using **ASP.NET Core Minimal APIs**, **Entity Framework Core**, and **PostgreSQL**, structured around clean **Vertical Slice / Feature-based Architecture**.
+A backend RESTful API designed to manage scholarship applications, courses, mentee payments, public feedback, and email/in-app notifications. Built with **.NET 10** using **ASP.NET Core Minimal APIs**, **Entity Framework Core**, and **PostgreSQL**.
+
+The project uses a **feature-based folder structure** to keep endpoints, models, and business logic grouped by domain.
 
 ---
 
-## Key Features
+## Features
 
-* **Authentication & Authorization:** JWT-based authentication with role support (students, reviewers, admins).
-* **Scholarship Management:** Endpoints for publishing, filtering, and applying to scholarship programs.
+* **Authentication & Authorization:** JWT-based authentication supporting role management (users, admins).
+* **Scholarship Management:** Endpoints for browsing, filtering, and applying to scholarship programs.
+* **Courses:** Endpoints for managing available courses and related academic details.
+* **Payment Tracking:** Recording and tracking fees paid by mentees.
+* **Public Feedback:** Open endpoints allowing visitors and platform users to submit feedback and suggestions.
 * **Notifications & Email:** Services and endpoints to send emails and store user notifications.
-* **Document & Asset Storage:** Handling file attachments for application submissions.
-* **Payment Records:** Tracking stipend and disbursement histories.
-* **Feedback System:** Reviewer notes and evaluations tied to specific applications.
+* **Document & File Storage:** Handling file uploads and attachments for application submissions.
 
 ---
 
