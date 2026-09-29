@@ -68,8 +68,7 @@ Update `appsettings.Development.json` with your connection string and credential
 Apply database migrations: dotnet ef database update
 Run the API: dotnet run
 
-
-5. **Test endpoints:**
+**Test endpoints:**
 Open `https://localhost:<PORT>/scalar/v1` or `/swagger` in your browser.
 
 ---
