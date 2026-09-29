@@ -1,4 +1,4 @@
-# 🎓 Scholarship Platform API
+# 🎓 Scholarship Mentorship API
 
 A backend RESTful API designed to manage scholarship applications, courses, mentee payments, public feedback, and email/in-app notifications. Built with **.NET 10** using **ASP.NET Core Minimal APIs**, **Entity Framework Core**, and **PostgreSQL**.
 
