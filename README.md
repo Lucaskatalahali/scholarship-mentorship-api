@@ -37,8 +37,8 @@ The project avoids generic `Controllers/` and `Models/` folders, keeping code or
 
 ```
 ScholarshipPlatform/
-├── Authentication/           # Login, registration, and token handling
-├── Users/                    # User accounts and profile data
+├── Authentication/           # Login / token handling
+├── Users/                    # User accounts, profile data...
 ├── Scholarships/             # Scholarship listings and details
 ├── ScholarshipApplications/  # Application submissions and status handling
 ├── Courses/                  # Courses and educational programs
@@ -66,22 +66,13 @@ ScholarshipPlatform/
 
 ### Setup
 
-Clone the repository
-Update `appsettings.Development.json` with your connection string and credentials:
-Apply database migrations: dotnet ef database update
-Run the API: dotnet run
+- Clone the repository.
+- Update `appsettings.Development.json` with your connection string and credentials:
+- Apply database migrations: dotnet ef database update.
+- Run the API: dotnet run
 
 **Test endpoints:**
 Open `https://localhost:<PORT>/scalar/v1` or `/swagger` in your browser.
-
----
-
-## Main Endpoints
-
-* `POST /api/auth/login` – User authentication & token issuance
-* `GET  /api/scholarships` – List scholarship listings
-* `POST /api/notifications` – Internal notification triggers
-* `GET  /api/payments` – Track payment records
 
 ---
 
