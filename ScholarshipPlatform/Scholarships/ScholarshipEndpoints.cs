@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using ScholarshipPlatform.Scholarships.Dtos;
 
 namespace ScholarshipPlatform.Scholarships;
@@ -9,7 +10,8 @@ public static class ScholarshipEndpoins
         var group = app.MapGroup("/scholarships");
 
         group.MapPost("/", CreateScholarship)
-            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
+        .DisableAntiforgery(); // Obrigatório para APIs que recebem [FromForm] com autenticação JWT
 
         group.MapGet("/{id:int}", GetScholarshipById)
             .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));
@@ -17,7 +19,8 @@ public static class ScholarshipEndpoins
         group.MapGet("/", GetScholarships);
 
         group.MapPatch("/{id:int}", UpdateScholarship)
-            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .DisableAntiforgery();
 
         group.MapDelete("/{id:int}", DeleteScholarship)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
@@ -26,14 +29,15 @@ public static class ScholarshipEndpoins
     }
 
     private static async Task<IResult> CreateScholarship(
-        CreateScholarshipDto dto, 
-        CreateScholarshipDtoValidator validator, 
-        ScholarshipService scholarshipService
+    [FromForm] CreateScholarshipDto dto, 
+    CreateScholarshipDtoValidator validator, 
+    ScholarshipService scholarshipService
     )
     {
         var validationResult = await validator.ValidateAsync(dto);
 
-        if(!validationResult.IsValid) return TypedResults.ValidationProblem(validationResult.ToDictionary());
+        if (!validationResult.IsValid) 
+            return TypedResults.ValidationProblem(validationResult.ToDictionary());
 
         var responseDto = await scholarshipService.CreateScholarship(dto);
 
@@ -64,17 +68,18 @@ public static class ScholarshipEndpoins
     }
 
     private static async Task<IResult> UpdateScholarship(
-        int id, 
-        PathScholarshipDto dto, 
-        PathScholarshipDtoValidator validator, 
-        ScholarshipService scholarshipService)
+    int id, 
+    [FromForm] PatchScholarshipDto dto, 
+    PatchScholarshipDtoValidator validator, 
+    ScholarshipService scholarshipService)
     {
         if (id <= 0)
             return TypedResults.BadRequest(new { message = "O ID deve ser maior que 0." });
 
         var validationResult = await validator.ValidateAsync(dto);
 
-        if(!validationResult.IsValid) return TypedResults.ValidationProblem(validationResult.ToDictionary());
+        if (!validationResult.IsValid) 
+            return TypedResults.ValidationProblem(validationResult.ToDictionary());
 
         var result = await scholarshipService.UpdateScholarship(id, dto);
 
@@ -95,16 +100,16 @@ public static class ScholarshipEndpoins
         var result = await scholarshipService.DeleteScholarship(id);
 
         if (result is null)
-            return TypedResults.NoContent();
+            return TypedResults.NotFound(new { message = "Bolsa de estudos não encontrada." });
         
         if (result.Value == false)
         {
             return TypedResults.Conflict(new 
             { 
-                message = "Esta bolsa não pode ser removida porque possui candidaturas." 
+                message = "Não é possível excluir uma bolsa que possui candidaturas vinculadas." 
             }); 
         }
-            
-        return TypedResults.NotFound();
+        
+        return TypedResults.NoContent();
     }
 }

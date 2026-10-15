@@ -5,8 +5,5 @@ public record CreateUserDto(
     string Email,
     string Password,
     DateOnly BirthDate,
-    string PhoneNumber,
-    Address Address,
-    EducationLevel EducationLevel,
-    decimal Gpa    
+    string PhoneNumber   
 );

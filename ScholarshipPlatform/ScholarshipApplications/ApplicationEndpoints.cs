@@ -15,11 +15,9 @@ public static class ApplicationEndpoints
         group.MapGet("/{id:int}", GetScholarshipApplicationById)
             .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor")); 
 
-        //Apenas o Admin tem o poder de ver todas as aplicações do sistema.
         group.MapGet("/", GetScholarshipApplications)
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-        //Um usuário pode ver suas próprias aplicações
         group.MapGet("/me", GetMyScholarshipApplications)
             .RequireAuthorization();
 
@@ -34,21 +32,26 @@ public static class ApplicationEndpoints
 
     private static async Task<IResult> CreateScholarshipApplication(
         ClaimsPrincipal user,
-        CreateApplicationDto dto, 
+        ApplyScholarshipDto dto, 
+        CreateApplicationDtoValidator validator,
         ApplicationService scholarshipApplicationService
     )
     {
+        var validationResult = await validator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
+            return TypedResults.ValidationProblem(validationResult.ToDictionary());
+
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!int.TryParse(userId, out var id))
-        return TypedResults.Unauthorized();
+            return TypedResults.Unauthorized();
 
         var result = await scholarshipApplicationService.CreateScholarshipApplication(id, dto);
 
         if (!result.IsSuccess)
-            return TypedResults.ValidationProblem(result.Errors!); //Depois tratar erros específicos
+            return TypedResults.ValidationProblem(result.Errors!);
 
-        return TypedResults.Created($"/scholarshipApplications/{result.Data!.Id}", result.Data);
+        return TypedResults.Created($"/applications/{result.Data!.Id}", result.Data);
     }
 
     private static async Task<IResult> GetScholarshipApplicationById(int id, ApplicationService scholarshipApplicationService)
@@ -63,14 +66,13 @@ public static class ApplicationEndpoints
             : TypedResults.Ok(scholarshipApplicationDto);
     }
 
-    //O usuário obtem suas próprias aplicações
     private static async Task<IResult> GetMyScholarshipApplications(
         ClaimsPrincipal user,
         ApplicationService scholarshipApplicationService)
     {
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if(!int.TryParse(userId, out var id))
+        if (!int.TryParse(userId, out var id))
             return TypedResults.Unauthorized();
 
         var myScholarshipApplicationsDto = await scholarshipApplicationService.GetMyScholarshipApplications(id);

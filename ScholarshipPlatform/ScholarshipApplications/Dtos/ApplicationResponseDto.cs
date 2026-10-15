@@ -10,6 +10,7 @@ public record ApplicationResponseDto(
     int? UserId,
     string ScholarshipName,
     int ScholarshipId,
+    string SelectedLevel,
     List<CourseResponseDto> SelectedCourses,
     List<CourseResponseDto> EnrolledCourses
 );

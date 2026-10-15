@@ -114,6 +114,7 @@ app.UseCors("TestClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles(); // Necessário para servir /uploads/... publicamente
 
 // Começar o app com as Roles
 using (var scope = app.Services.CreateScope())

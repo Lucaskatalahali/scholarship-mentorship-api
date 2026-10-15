@@ -1,7 +1,7 @@
 namespace ScholarshipPlatform.Users.Dtos;
 
 public record UserDocumentResponseDto(
-    int id,
+    int Id,
     int UserId,
     DocumentType DocumentType,
     string OriginalFileName,

@@ -24,7 +24,7 @@ public class ApplicationService
         _logger = logger;
     }
 
-    public async Task<ServiceResult<ApplicationResponseDto>> CreateScholarshipApplication(int userId, CreateApplicationDto dto)
+    public async Task<ServiceResult<ApplicationResponseDto>> CreateScholarshipApplication(int userId, ApplyScholarshipDto dto)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
@@ -62,7 +62,17 @@ public class ApplicationService
                 });
         } 
 
-        // Verificação antes de associar
+        // Validação de nível acadêmico compatível com a bolsa
+        if (!scholarship.Levels.Contains(dto.SelectedLevel))
+        {
+            return ServiceResult<ApplicationResponseDto>.Failure(
+                new Dictionary<string, string[]>
+                {
+                    ["SelectedLevel"] = ["O nível acadêmico selecionado não é ofertado por esta bolsa de estudos."]
+                });
+        }
+
+        // Verificação de correspondência dos cursos selecionados
         var validCourseIds = scholarship.Courses.Select(c => c.Id).ToHashSet();
 
         bool allValid = dto.SelectedCourseIds.All(validCourseIds.Contains);
@@ -88,7 +98,7 @@ public class ApplicationService
                 });
         }
 
-        // Verificar se já não existe candidatura desse usuário para esta bolsa
+        // Verificar duplicidade de inscrição
         var applicationExists = await _db.ScholarshipApplications
             .AnyAsync(s => s.UserId == userId && s.ScholarshipId == dto.ScholarshipId);
 
@@ -104,13 +114,14 @@ public class ApplicationService
                 });
         }
 
-        // Criar a nova aplicação
+        // Persistência da candidatura
         var scholarshipApplication = new ScholarshipApplication
         {
             ApplicationDate = DateOnly.FromDateTime(DateTime.UtcNow),
             UserId = userId,
             ScholarshipId = dto.ScholarshipId,
-            SelectedCourses = courses,
+            SelectedLevel = dto.SelectedLevel,
+            SelectedCourses = courses
         };
 
         _db.ScholarshipApplications.Add(scholarshipApplication);
@@ -127,6 +138,7 @@ public class ApplicationService
             user.Id,
             scholarship.Name,
             scholarship.Id,
+            scholarshipApplication.SelectedLevel.ToString(),
             scholarshipApplication.SelectedCourses
                 .Select(c => new CourseResponseDto(c.Id, c.Name))
                 .ToList(),
@@ -151,6 +163,7 @@ public class ApplicationService
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId,
+                s.SelectedLevel.ToString(),
                 s.SelectedCourses
                     .Select(c => new CourseResponseDto(c.Id, c.Name))
                     .ToList(),
@@ -164,6 +177,7 @@ public class ApplicationService
     public async Task<List<ApplicationResponseDto>> GetScholarshipApplications()
     {
         return await _db.ScholarshipApplications
+            .AsNoTracking()
             .Select(s => new ApplicationResponseDto(
                 s.Id,
                 s.ApplicationDate,
@@ -172,18 +186,21 @@ public class ApplicationService
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId,
+                s.SelectedLevel.ToString(),
                 s.SelectedCourses
                     .Select(c => new CourseResponseDto(c.Id, c.Name))
                     .ToList(),
                 s.EnrolledCourses
                     .Select(c => new CourseResponseDto(c.Id, c.Name))
                     .ToList()
-            )).ToListAsync();
+            ))
+            .ToListAsync();
     }
 
     public async Task<List<ApplicationResponseDto>> GetMyScholarshipApplications(int userId)
     {
         return await _db.ScholarshipApplications
+            .AsNoTracking()
             .Where(s => s.UserId == userId)
             .Select(s => new ApplicationResponseDto(
                 s.Id,
@@ -193,13 +210,15 @@ public class ApplicationService
                 s.UserId,
                 s.Scholarship.Name,
                 s.ScholarshipId,
+                s.SelectedLevel.ToString(),
                 s.SelectedCourses
                     .Select(c => new CourseResponseDto(c.Id, c.Name))
                     .ToList(),
                 s.EnrolledCourses
                     .Select(c => new CourseResponseDto(c.Id, c.Name))
                     .ToList()
-            )).ToListAsync();
+            ))
+            .ToListAsync();
     }
 
     public async Task<bool> UpdateScholarshipApplication(int id, PatchScholarshipApplicationDto dto)

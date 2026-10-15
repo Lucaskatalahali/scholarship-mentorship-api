@@ -7,6 +7,7 @@ namespace ScholarshipPlatform.ScholarshipApplications;
 public class ScholarshipApplication
 {
     public int Id {get; set;}
+    public ScholarshipLevel SelectedLevel { get; set; }
     public DateOnly ApplicationDate {get; set;} //data registrada no nosso site
     public ApplicationStatus Status {get; set;} = ApplicationStatus.Pending;
     public User? User {get; set;} //o mentorando inscrito / relação mentorando - bolsa
@@ -17,6 +18,6 @@ public class ScholarshipApplication
     // Cursos escolhidos pelo candidato nesta candidatura
     public List<Course> SelectedCourses {get; set;} = [];
 
-    //Cursos onde ser+a candidatado
+    // Cursos onde será candidatado pela equipe/mentor
     public List<Course> EnrolledCourses {get; set;} = [];
 }

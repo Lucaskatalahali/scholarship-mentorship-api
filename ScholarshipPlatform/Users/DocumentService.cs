@@ -62,7 +62,7 @@ public class DocumentService
         }
 
         var relativeFolder = Path.Combine("users", userId.ToString());
-        var storedPath = await _storageService.SaveFileAsync(file, relativeFolder);
+        var storedPath = await _storageService.SaveFileAsync(file, relativeFolder, isPublic: false);
 
         var document = new UserDocument
         {
@@ -113,7 +113,7 @@ public class DocumentService
         var document = await _db.UserDocuments.FindAsync(documentId);
         if (document is null) return null;
 
-        var (stream, _) = await _storageService.GetFileAsync(document.StoredFileName);
+        var (stream, _) = await _storageService.GetFileAsync(document.StoredFileName, isPublic: false);
         return (stream, document.ContentType, document.OriginalFileName);
     }
 
@@ -127,7 +127,7 @@ public class DocumentService
         var document = await _db.UserDocuments.FindAsync(documentId);
         if (document is null) return false;
 
-        await _storageService.DeleteFileAsync(document.StoredFileName);
+        await _storageService.DeleteFileAsync(document.StoredFileName, isPublic: false);
         _db.UserDocuments.Remove(document);
         await _db.SaveChangesAsync();
 

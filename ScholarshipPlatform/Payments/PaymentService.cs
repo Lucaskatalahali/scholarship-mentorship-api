@@ -150,6 +150,7 @@ public class PaymentService
                 u.Id,
                 u.Name,
                 u.Email!,
+                u.PhoneNumber!,
                 u.BirthDate,
                 u.Address,
                 u.EducationLevel,

@@ -376,6 +376,11 @@ namespace ScholarshipPlatform.Migrations
                     b.Property<int>("ScholarshipId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("SelectedLevel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -401,6 +406,10 @@ namespace ScholarshipPlatform.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.PrimitiveCollection<List<string>>("Benefits")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("text");
@@ -409,19 +418,39 @@ namespace ScholarshipPlatform.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Eligibility")
+                    b.PrimitiveCollection<List<string>>("Eligibility")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<List<string>>("Levels")
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("OfficialUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("RequiredDocuments")
+                    b.PrimitiveCollection<List<string>>("RequiredDocuments")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("ScholarshipType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -445,7 +474,7 @@ namespace ScholarshipPlatform.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<decimal>("Average")
+                    b.Property<decimal?>("Average")
                         .HasColumnType("numeric");
 
                     b.Property<DateOnly>("BirthDate")
@@ -456,7 +485,6 @@ namespace ScholarshipPlatform.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("EducationLevel")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -506,8 +534,6 @@ namespace ScholarshipPlatform.Migrations
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "ScholarshipPlatform.Users.User.Address#Address", b1 =>
                         {
-                            b1.IsRequired();
-
                             b1.Property<string>("AddressLine")
                                 .IsRequired()
                                 .HasColumnType("text");

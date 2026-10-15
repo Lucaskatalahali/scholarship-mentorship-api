@@ -46,16 +46,6 @@ public class UserService
             UserName = dto.Email,
             PhoneNumber = dto.PhoneNumber,
             BirthDate = dto.BirthDate,
-            
-            Address = new Address
-            {
-                Country = dto.Address.Country,
-                Province = dto.Address.Province,
-                AddressLine = dto.Address.AddressLine    
-            },
-
-            EducationLevel = dto.EducationLevel,
-            Average = dto.Gpa,
         };
 
         // Criar user e adicionar role devem acontecer ao mesmo tempo
@@ -126,6 +116,7 @@ public class UserService
             user.Id,
             user.Name,
             user.Email,
+            user.PhoneNumber,
             user.BirthDate,
             user.Address,
             user.EducationLevel,
@@ -176,6 +167,7 @@ public class UserService
             user.Id,
             user.Name,
             user.Email!,
+            user.PhoneNumber!,
             user.BirthDate,
             user.Address,
             user.EducationLevel,
@@ -191,6 +183,7 @@ public class UserService
                 u.Id,
                 u.Name,
                 u.Email!,
+                u.PhoneNumber!,
                 u.BirthDate,
                 u.Address,
                 u.EducationLevel,
@@ -208,10 +201,15 @@ public class UserService
         if (dto.Name is not null) user.Name = dto.Name.Trim();
         if (dto.BirthDate is not null) user.BirthDate = dto.BirthDate.Value;
         if (dto.Average is not null) user.Average = dto.Average.Value;
-        if (dto.Adress.Country is not null) user.Address.Country = dto.Adress.Country;
-        if (dto.Adress.Province is not null) user.Address.Province = dto.Adress.Province;
-        if (dto.Adress.AddressLine is not null) user.Address.AddressLine = dto.Adress.AddressLine;
-        if (dto.EducationLevel.HasValue) user.EducationLevel = dto.EducationLevel.Value;
+        if (dto.EducationLevel.HasValue) user.EducationLevel = dto.EducationLevel.Value;  
+
+        if(dto.Adress is not null)
+        {
+            user.Address ??= new Address();
+            if (dto.Adress.Country is not null) user.Address.Country = dto.Adress.Country;
+            if (dto.Adress.Province is not null) user.Address.Province = dto.Adress.Province;
+            if (dto.Adress.AddressLine is not null) user.Address.AddressLine = dto.Adress.AddressLine;
+        }
 
         var result = await _userManager.UpdateAsync(user);
 

@@ -13,8 +13,8 @@ using ScholarshipPlatform.Data;
 namespace ScholarshipPlatform.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260921133841_UpdateScholarshipAndApplicationrDomain")]
-    partial class UpdateScholarshipAndApplicationrDomain
+    [Migration("20261015205318_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -210,6 +210,131 @@ namespace ScholarshipPlatform.Migrations
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("ScholarshipPlatform.Feedbacks.Feedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("ContactName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("PageUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "Type");
+
+                    b.ToTable("Feedbacks");
+                });
+
+            modelBuilder.Entity("ScholarshipPlatform.Notifications.NewsletterSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("SubscribedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UnsubscribeToken")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UnsubscribedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("UnsubscribeToken")
+                        .IsUnique();
+
+                    b.ToTable("NewsletterSubscriptions");
+                });
+
+            modelBuilder.Entity("ScholarshipPlatform.Notifications.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("ScholarshipPlatform.Payments.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -254,6 +379,11 @@ namespace ScholarshipPlatform.Migrations
                     b.Property<int>("ScholarshipId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("SelectedLevel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -279,6 +409,10 @@ namespace ScholarshipPlatform.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.PrimitiveCollection<List<string>>("Benefits")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("text");
@@ -287,19 +421,39 @@ namespace ScholarshipPlatform.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Eligibility")
+                    b.PrimitiveCollection<List<string>>("Eligibility")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<List<string>>("Levels")
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("OfficialUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("RequiredDocuments")
+                    b.PrimitiveCollection<List<string>>("RequiredDocuments")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("ScholarshipType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -323,7 +477,7 @@ namespace ScholarshipPlatform.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<decimal>("Average")
+                    b.Property<decimal?>("Average")
                         .HasColumnType("numeric");
 
                     b.Property<DateOnly>("BirthDate")
@@ -334,7 +488,6 @@ namespace ScholarshipPlatform.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("EducationLevel")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -384,8 +537,6 @@ namespace ScholarshipPlatform.Migrations
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "ScholarshipPlatform.Users.User.Address#Address", b1 =>
                         {
-                            b1.IsRequired();
-
                             b1.Property<string>("AddressLine")
                                 .IsRequired()
                                 .HasColumnType("text");
@@ -409,6 +560,50 @@ namespace ScholarshipPlatform.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("ScholarshipPlatform.Users.UserDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDocuments");
                 });
 
             modelBuilder.Entity("CourseScholarshipApplication", b =>
@@ -499,6 +694,25 @@ namespace ScholarshipPlatform.Migrations
                         .HasForeignKey("ScholarshipId");
                 });
 
+            modelBuilder.Entity("ScholarshipPlatform.Feedbacks.Feedback", b =>
+                {
+                    b.HasOne("ScholarshipPlatform.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("ScholarshipPlatform.Notifications.Notification", b =>
+                {
+                    b.HasOne("ScholarshipPlatform.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ScholarshipPlatform.Payments.Payment", b =>
                 {
                     b.HasOne("ScholarshipPlatform.Users.User", "User")
@@ -524,6 +738,17 @@ namespace ScholarshipPlatform.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Scholarship");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ScholarshipPlatform.Users.UserDocument", b =>
+                {
+                    b.HasOne("ScholarshipPlatform.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

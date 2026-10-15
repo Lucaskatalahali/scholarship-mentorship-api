@@ -8,6 +8,8 @@ using ScholarshipPlatform.Payments;
 using ScholarshipPlatform.ScholarshipApplications;
 using ScholarshipPlatform.Scholarships;
 using ScholarshipPlatform.Users;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion; // adicione este using se necessário
 
 namespace ScholarshipPlatform.Data;
 
@@ -25,10 +27,37 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NewsletterSubscription> NewsletterSubscriptions => Set<NewsletterSubscription>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
+        // 1. Configurações da Bolsa (Scholarship)
+        
+
+        builder.Entity<Scholarship>(entity =>
+        {
+            entity.Property(s => s.ScholarshipType)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            var levelsConverter = new ValueConverter<List<ScholarshipLevel>, List<string>>(
+                v => v.Select(e => e.ToString()).ToList(),
+                v => v.Select(e => Enum.Parse<ScholarshipLevel>(e)).ToList()
+            );
+
+            var levelsComparer = new ValueComparer<List<ScholarshipLevel>>(
+                (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c.ToList()
+            );
+
+            entity.Property(s => s.Levels)
+                .HasConversion(levelsConverter)
+                .Metadata.SetValueComparer(levelsComparer);
+        });
+
+        // 2. Configurações da Candidatura (ScholarshipApplication)
         builder.Entity<ScholarshipApplication>(entity =>
         {
             // Relações e integridade referencial
@@ -42,10 +71,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
                 .HasForeignKey(a => a.ScholarshipId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Mapeamentos de propriedades
+            // Mapeamentos de enums simples como string
             entity.Property(a => a.Status)
                 .HasConversion<string>()
                 .HasMaxLength(30);
+
+            entity.Property(a => a.SelectedLevel)
+                .HasConversion<string>()
+                .HasMaxLength(50);
 
             // Tabelas de junção Many-to-Many distintas para Course
             entity.HasMany(a => a.SelectedCourses)
@@ -57,6 +90,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
                 .UsingEntity(j => j.ToTable("ApplicationEnrolledCourses"));
         });
 
+        // 3. Configurações do Usuário (User)
         builder.Entity<User>(entity =>
         {
             entity.Property(u => u.AccountStatus)
@@ -70,6 +104,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             entity.ComplexProperty(u => u.Address);
         });
 
+        // 4. Configurações dos Documentos (UserDocument)
         builder.Entity<UserDocument>(entity =>
         {
             entity.HasOne(d => d.User)
@@ -84,10 +119,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             entity.Property(d => d.OriginalFileName).HasMaxLength(255);
             entity.Property(d => d.StoredFileName).HasMaxLength(255);
             entity.Property(d => d.ContentType).HasMaxLength(100);
-
-
         });
 
+        // 5. Configurações de Notificações (Notification)
         builder.Entity<Notification>(entity =>
         {
             entity.HasOne(n => n.User)
@@ -98,25 +132,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             entity.Property(n => n.Title).HasMaxLength(150);
             entity.Property(n => n.Message).HasMaxLength(1000);
 
-            // Índice para acelerar a busca de notificações não lidas por usuário
             entity.HasIndex(n => new { n.UserId, n.IsRead });
         });
 
+        // 6. Configurações de Newsletter (NewsletterSubscription)
         builder.Entity<NewsletterSubscription>(entity =>
         {
             entity.Property(n => n.Email).HasMaxLength(256).IsRequired();
             entity.Property(n => n.UnsubscribeToken).HasMaxLength(64).IsRequired();
 
-            // Índice único no e-mail para evitar duplicidade de inscrições
             entity.HasIndex(n => n.Email).IsUnique();
-
-            // Índice no token para busca instantânea ao clicar no link de descadastro
             entity.HasIndex(n => n.UnsubscribeToken).IsUnique();
         });
 
+        // 7. Configurações de Feedback
         builder.Entity<Feedback>(entity =>
         {
-            //se o usuário for deletado, mantemos o feedback
             entity.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(f => f.UserId)
@@ -145,7 +176,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
             entity.Property(f => f.PageUrl)
                 .HasMaxLength(300);
 
-            // Índice para agilizar a filtragem do Admin por status e tipo
             entity.HasIndex(f => new { f.Status, f.Type });
         });
     }

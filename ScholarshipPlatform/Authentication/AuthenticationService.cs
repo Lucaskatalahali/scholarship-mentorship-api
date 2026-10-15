@@ -68,6 +68,7 @@ public class AuthenticationService
             user.Id,
             user.Name,
             user.Email!,
+            user.PhoneNumber!,
             user.BirthDate,
             user.Address,
             user.EducationLevel,

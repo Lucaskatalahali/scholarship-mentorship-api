@@ -1,31 +1,102 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
+
 namespace ScholarshipPlatform.Scholarships.Dtos;
 
 public class CreateScholarshipDtoValidator : AbstractValidator<CreateScholarshipDto>
 {
+    private static readonly string[] AllowedImageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+    private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
+
     public CreateScholarshipDtoValidator()
     {
+        // 1. Campos de texto básicos
         RuleFor(s => s.Name)
             .NotEmpty()
-            .WithMessage("Scholarship name is required.");
+            .WithMessage("O nome da bolsa é obrigatório.")
+            .MaximumLength(200)
+            .WithMessage("O nome da bolsa deve ter no máximo 200 caracteres.");
+
+        RuleFor(s => s.Title)
+            .NotEmpty()
+            .WithMessage("O título da bolsa (instituição/programa) é obrigatório.")
+            .MaximumLength(200)
+            .WithMessage("O título deve ter no máximo 200 caracteres.");
+        
+        RuleFor(s => s.Description)
+            .NotEmpty()
+            .WithMessage("A descrição da é obrigatório.");
 
         RuleFor(s => s.Country)
             .NotEmpty()
-            .WithMessage("Country name is required.");
+            .WithMessage("O país de destino é obrigatório.");
 
         RuleFor(s => s.Deadline)
             .GreaterThan(DateOnly.FromDateTime(DateTime.Today))
-            .WithMessage("Deadline cannot be in the past.");
+            .WithMessage("O prazo de inscrição (deadline) não pode estar no passado.");
 
-        // 1. Garante que não é nulo/vazio e que os IDs são > 0
+        RuleFor(s => s.OfficialUrl)
+            .NotEmpty()
+            .WithMessage("O link oficial do edital/bolsa é obrigatório.")
+            .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out var result) 
+                         && (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps))
+            .WithMessage("O link oficial informado não é uma URL válida.");
+
+        // 2. Tipo de bolsa (Enum)
+        RuleFor(s => s.ScholarshipType)
+            .IsInEnum()
+            .WithMessage("Tipo de bolsa inválido. Deve ser Total ou Parcial.");
+
+        // 3. Níveis de ensino (Levels)
+        RuleFor(s => s.Levels)
+            .NotEmpty()
+            .WithMessage("A bolsa deve aceitar ao menos um nível de ensino.")
+            .ForEach(level => level.IsInEnum().WithMessage("Nível acadêmico inválido."));
+
+        // 4. Listas de marcadores (Benefits, Eligibility, RequiredDocuments)
+        RuleFor(s => s.Benefits)
+            .NotEmpty()
+            .WithMessage("Informe pelo menos um benefício da bolsa.")
+            .ForEach(b => b.NotEmpty().WithMessage("O benefício não pode ser vazio."));
+
+        RuleFor(s => s.Eligibility)
+            .NotEmpty()
+            .WithMessage("Informe pelo menos um critério de elegibilidade.")
+            .ForEach(e => e.NotEmpty().WithMessage("O critério de elegibilidade não pode ser vazio."));
+
+        RuleFor(s => s.RequiredDocuments)
+            .NotEmpty()
+            .WithMessage("Informe pelo menos um documento necessário.")
+            .ForEach(d => d.NotEmpty().WithMessage("O nome do documento não pode ser vazio."));
+
+        // 5. Cursos associados
         RuleFor(x => x.CourseIds)
             .NotEmpty()
             .WithMessage("A bolsa deve estar associada a pelo menos um curso.")
-            .ForEach(id => id.GreaterThan(0).WithMessage("O ID do curso deve ser um número positivo."));
-
-        // 2. Regra dedicada para unicidade dos IDs
-        RuleFor(x => x.CourseIds)
             .Must(ids => ids == null || ids.Distinct().Count() == ids.Count)
-            .WithMessage("A lista de cursos não pode conter IDs duplicados.");
+            .WithMessage("A lista de cursos não pode conter IDs duplicados.")
+            .ForEach(id => id.GreaterThan(0).WithMessage("O ID do curso deve ser um número positivo."));
+          
+
+        // 6. Imagem física (IFormFile)
+        RuleFor(s => s.Image)
+            .NotNull()
+            .WithMessage("A imagem da bolsa é obrigatória.")
+            .DependentRules(() =>
+            {
+                RuleFor(s => s.Image!.Length)
+                    .GreaterThan(0)
+                    .WithMessage("O arquivo de imagem enviado está vazio.")
+                    .LessThanOrEqualTo(MaxImageSizeBytes)
+                    .WithMessage("A imagem deve ter no máximo 5 MB.");
+
+                RuleFor(s => s.Image!)
+                    .Must(file =>
+                    {
+                        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                        return AllowedImageExtensions.Contains(ext);
+                    })
+                    .WithMessage("Formato de imagem inválido. Formatos aceitos: .jpg, .jpeg, .png, .webp.");
+            });
     }
 }
