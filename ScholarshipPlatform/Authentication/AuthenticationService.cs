@@ -127,7 +127,7 @@ public class AuthenticationService
             Encoding.UTF8.GetBytes(token)
         );
 
-        var confirmationLink = $"http://localhost:5274/auth/confirm-email?userId={user.Id}&token={encodedToken}";
+        var confirmationLink = $"http://localhost:5173/confirmar-email?userId={user.Id}&token={encodedToken}";
 
         await _emailService.SendEmailAsync(
             user.Email!,

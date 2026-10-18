@@ -10,8 +10,8 @@ public static class ScholarshipEndpoins
         var group = app.MapGroup("/scholarships");
 
         group.MapPost("/", CreateScholarship)
-        .RequireAuthorization(policy => policy.RequireRole("Admin"))
-        .DisableAntiforgery(); // Obrigatório para APIs que recebem [FromForm] com autenticação JWT
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .DisableAntiforgery(); // Obrigatório para APIs que recebem [FromForm] com autenticação JWT
 
         group.MapGet("/{id:int}", GetScholarshipById)
             .RequireAuthorization(policy => policy.RequireRole("Admin", "Mentor"));

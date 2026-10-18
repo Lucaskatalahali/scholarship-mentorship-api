@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 
 namespace ScholarshipPlatform.Scholarships.Dtos;
 
@@ -25,7 +24,7 @@ public class CreateScholarshipDtoValidator : AbstractValidator<CreateScholarship
         
         RuleFor(s => s.Description)
             .NotEmpty()
-            .WithMessage("A descrição da é obrigatório.");
+            .WithMessage("A descrição da bolsa é obrigatório.");
 
         RuleFor(s => s.Country)
             .NotEmpty()
@@ -80,23 +79,15 @@ public class CreateScholarshipDtoValidator : AbstractValidator<CreateScholarship
 
         // 6. Imagem física (IFormFile)
         RuleFor(s => s.Image)
+            .Cascade(CascadeMode.Stop)
             .NotNull()
-            .WithMessage("A imagem da bolsa é obrigatória.")
-            .DependentRules(() =>
-            {
-                RuleFor(s => s.Image!.Length)
-                    .GreaterThan(0)
-                    .WithMessage("O arquivo de imagem enviado está vazio.")
-                    .LessThanOrEqualTo(MaxImageSizeBytes)
-                    .WithMessage("A imagem deve ter no máximo 5 MB.");
-
-                RuleFor(s => s.Image!)
-                    .Must(file =>
-                    {
-                        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                        return AllowedImageExtensions.Contains(ext);
-                    })
-                    .WithMessage("Formato de imagem inválido. Formatos aceitos: .jpg, .jpeg, .png, .webp.");
-            });
+            .WithMessage("O arquivo de imagem é obrigatório.")
+            .Must(file => file!.Length > 0)
+            .WithMessage("O arquivo de imagem enviado está vazio.")
+            .Must(file => file!.Length <= MaxImageSizeBytes)
+            .WithMessage("A imagem deve ter no máximo 5 MB.")
+            .Must(file => AllowedImageExtensions.Contains(
+                Path.GetExtension(file!.FileName).ToLowerInvariant()))
+            .WithMessage("Formato de imagem inválido. Formatos aceitos: .jpg, .jpeg, .png, .webp.");
     }
 }

@@ -33,7 +33,7 @@ public class ScholarshipService
         }
 
         // 2. Salvar a imagem física via IFileStorageService
-        string? imagePath = null;
+        string imagePath = string.Empty;
         if (dto.Image is not null && dto.Image.Length > 0)
         {
             // isPublic: true garante que o arquivo vai para wwwroot/uploads/scholarships
@@ -144,6 +144,9 @@ public class ScholarshipService
 
         if (scholarship is null)
             return null;
+        
+        string? oldImagePath = null;
+        string? newImagePath = null;
 
         // Atualização dos Cursos
         if (dto.CourseIds is not null)
@@ -161,26 +164,14 @@ public class ScholarshipService
             scholarship.Courses = newCourses;
         }
 
-        // Substituição da Imagem (se enviada)
         if (dto.Image is not null && dto.Image.Length > 0)
         {
-            var oldImagePath = scholarship.ImageUrl;
+            oldImagePath = scholarship.ImageUrl;
 
-            // Salva a nova imagem pública
-            scholarship.ImageUrl = await _storageService.SaveFileAsync(dto.Image, "scholarships", isPublic: true);
+            newImagePath = await _storageService.SaveFileAsync(
+                dto.Image, "scholarships", isPublic: true);
 
-            // Se existia uma imagem anterior, apaga do disco
-            if (!string.IsNullOrWhiteSpace(oldImagePath))
-            {
-                try
-                {
-                    await _storageService.DeleteFileAsync(oldImagePath, isPublic: true);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Não foi possível excluir a imagem antiga {OldPath} da bolsa {ScholarshipId}", oldImagePath, id);
-                }
-            }
+            scholarship.ImageUrl = newImagePath;
         }
 
         // 3. Atualização dos campos simples
@@ -198,9 +189,51 @@ public class ScholarshipService
         if (dto.Eligibility is not null) scholarship.Eligibility = dto.Eligibility;
         if (dto.RequiredDocuments is not null) scholarship.RequiredDocuments = dto.RequiredDocuments;
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch
+        {
+            if (newImagePath is not null)
+            {
+                try
+                {
+                    await _storageService.DeleteFileAsync(
+                        newImagePath, isPublic: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Não foi possível excluir a nova imagem após falha na atualização da bolsa {ScholarshipId}",
+                        id);
+                }
+            }
 
-        _logger.LogInformation("Bolsa de estudos {ScholarshipId} ('{Name}') atualizada com sucesso", scholarship.Id, scholarship.Name);
+            throw;
+        }
+
+        // Só apagar a imagem antiga depois de guardar na BD.
+        if (!string.IsNullOrWhiteSpace(oldImagePath))
+        {
+            try
+            {
+                await _storageService.DeleteFileAsync(
+                    oldImagePath, isPublic: true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Não foi possível excluir a imagem antiga {OldPath} da bolsa {ScholarshipId}",
+                    oldImagePath, id);
+            }
+        }
+
+        _logger.LogInformation(
+            "Bolsa de estudos {ScholarshipId} ('{Name}') atualizada com sucesso",
+            scholarship.Id, scholarship.Name);
 
         return true;
     }

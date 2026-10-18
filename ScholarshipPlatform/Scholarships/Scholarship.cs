@@ -17,5 +17,5 @@ public class Scholarship
     public DateOnly Deadline {get; set;}
     public required string OfficialUrl {get; set;}
     public ScholarshipType ScholarshipType { get; set; } // Full or Partial
-    public string? ImageUrl { get; set; } // Guarda o caminho retornado pelo storage
+    public required string ImageUrl { get; set; } // Guarda o caminho retornado pelo storage
 }

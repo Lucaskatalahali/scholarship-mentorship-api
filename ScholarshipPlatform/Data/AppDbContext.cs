@@ -9,7 +9,8 @@ using ScholarshipPlatform.ScholarshipApplications;
 using ScholarshipPlatform.Scholarships;
 using ScholarshipPlatform.Users;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion; // adicione este using se necessário
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using ScholarshipPlatform.SuccessStories;
 
 namespace ScholarshipPlatform.Data;
 
@@ -27,6 +28,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NewsletterSubscription> NewsletterSubscriptions => Set<NewsletterSubscription>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
+    public DbSet<SuccessStory> SuccessStories => Set<SuccessStory>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -177,6 +179,41 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
                 .HasMaxLength(300);
 
             entity.HasIndex(f => new { f.Status, f.Type });
+        });
+
+        builder.Entity<SuccessStory>(entity =>
+        {
+            entity.Property(s => s.MenteeName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(s => s.ImageUrl)
+                .HasMaxLength(300)
+                .IsRequired();
+
+            entity.Property(s => s.ScholarshipName)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(s => s.AcademicLevel)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.Property(s => s.Country)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(s => s.Institution)
+                .HasMaxLength(150);
+
+            entity.Property(s => s.Quote)
+                .HasMaxLength(500);
+
+            entity.Property(s => s.Testimonial)
+                .HasMaxLength(2000);
+
+            entity.Property(s => s.VideoUrl)
+                .HasMaxLength(300);
         });
     }
 }

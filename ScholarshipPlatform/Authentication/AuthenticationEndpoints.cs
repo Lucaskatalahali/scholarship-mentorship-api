@@ -46,11 +46,11 @@ public static class AuthenticationEndpoints
     {
         var succeeded = await authenticationService.ConfirmEmail(userId, token);
 
-    if (!succeeded) 
-                return TypedResults.BadRequest(new {message = "Falha na confirmação do e-mail."});
+        if (!succeeded) 
+            return TypedResults.BadRequest(new {message = "Falha na confirmação do e-mail."});
 
-            return TypedResults.Ok(new {message = "E-mail confirmado com sucesso."});
-        }
+        return TypedResults.Ok(new {message = "E-mail confirmado com sucesso."});
+    }
 
     private static async Task<IResult> ResendEmailConfirmation(
         ResendEmailConfirmationDto dto,
