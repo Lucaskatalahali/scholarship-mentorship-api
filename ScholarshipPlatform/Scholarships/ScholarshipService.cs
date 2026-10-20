@@ -51,7 +51,14 @@ public class ScholarshipService
             OfficialUrl = dto.OfficialUrl!,
             ScholarshipType = dto.ScholarshipType,
             ImageUrl = imagePath,
-            Levels = dto.Levels,
+            
+            Levels = string.IsNullOrWhiteSpace(dto.Levels)
+                ? []
+                : dto.Levels.Split(',', StringSplitOptions.TrimEntries)
+                    .Select(level => Enum.Parse<ScholarshipLevel>(
+                        level, ignoreCase: true))
+                    .ToList(),
+
             Benefits = dto.Benefits,
             Eligibility = dto.Eligibility,
             RequiredDocuments = dto.RequiredDocuments,
@@ -85,55 +92,60 @@ public class ScholarshipService
         );
     }
 
+    
     public async Task<ScholarshipResponseDto?> GetScholarshipById(int id)
     {
-        return await _db.Scholarships
+        var scholarship = await _db.Scholarships
             .AsNoTracking()
-            .Where(s => s.Id == id)
-            .Select(s => new ScholarshipResponseDto(
-                s.Id,
-                s.Name,
-                s.Title,
-                s.Country,
-                s.Description!,
-                s.Deadline,
-                s.OfficialUrl!,
-                s.ScholarshipType.ToString(),
-                s.ImageUrl,
-                s.Levels.Select(l => l.ToString()).ToList(),
-                s.Benefits,
-                s.Eligibility,
-                s.RequiredDocuments,
-                s.Courses
-                    .Select(c => new CourseResponseDto(c.Id, c.Name))
-                    .ToList()
-            ))
-            .FirstOrDefaultAsync();
+            .Include(s => s.Courses)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (scholarship is null)
+            return null;
+
+        return new ScholarshipResponseDto(
+            scholarship.Id,
+            scholarship.Name,
+            scholarship.Title,
+            scholarship.Country,
+            scholarship.Description,
+            scholarship.Deadline,
+            scholarship.OfficialUrl,
+            scholarship.ScholarshipType.ToString(),
+            scholarship.ImageUrl,
+            scholarship.Levels.Select(l => l.ToString()).ToList(),
+            scholarship.Benefits,
+            scholarship.Eligibility,
+            scholarship.RequiredDocuments,
+            scholarship.Courses
+                .Select(c => new CourseResponseDto(c.Id, c.Name))
+                .ToList()
+        );
     }
 
     public async Task<List<ScholarshipResponseDto>> GetScholarships()
     {
-        return await _db.Scholarships
+        var scholarships = await _db.Scholarships
             .AsNoTracking()
-            .Select(s => new ScholarshipResponseDto(
-                s.Id,
-                s.Name,
-                s.Title,
-                s.Country,
-                s.Description!,
-                s.Deadline,
-                s.OfficialUrl!,
-                s.ScholarshipType.ToString(),
-                s.ImageUrl,
-                s.Levels.Select(l => l.ToString()).ToList(),
-                s.Benefits,
-                s.Eligibility,
-                s.RequiredDocuments,
-                s.Courses
-                    .Select(c => new CourseResponseDto(c.Id, c.Name))
-                    .ToList()
-            ))
+            .Include(s => s.Courses)
             .ToListAsync();
+
+        return scholarships.Select(s => new ScholarshipResponseDto(
+            s.Id,
+            s.Name,
+            s.Title,
+            s.Country,
+            s.Description,
+            s.Deadline,
+            s.OfficialUrl,
+            s.ScholarshipType.ToString(),
+            s.ImageUrl,
+            s.Levels.Select(l => l.ToString()).ToList(),
+            s.Benefits,
+            s.Eligibility,
+            s.RequiredDocuments,
+            s.Courses.Select(c => new CourseResponseDto(c.Id, c.Name)).ToList()
+        )).ToList();
     }
 
     public async Task<bool?> UpdateScholarship(int id, PatchScholarshipDto dto)
@@ -184,7 +196,15 @@ public class ScholarshipService
         if (dto.ScholarshipType is not null) scholarship.ScholarshipType = dto.ScholarshipType.Value;
 
         // 4. Coleções de texto e enums
-        if (dto.Levels is not null) scholarship.Levels = dto.Levels;
+        if (dto.Levels is not null)
+        {
+            scholarship.Levels = dto.Levels
+                .Split(',', StringSplitOptions.TrimEntries)
+                .Select(level => Enum.Parse<ScholarshipLevel>(
+                    level, ignoreCase: true))
+                .ToList();
+        }
+
         if (dto.Benefits is not null) scholarship.Benefits = dto.Benefits;
         if (dto.Eligibility is not null) scholarship.Eligibility = dto.Eligibility;
         if (dto.RequiredDocuments is not null) scholarship.RequiredDocuments = dto.RequiredDocuments;
@@ -258,7 +278,16 @@ public class ScholarshipService
 
         // 1. Remove o registro do banco
         _db.Scholarships.Remove(scholarship);
-        await _db.SaveChangesAsync();
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao apagar a bolsa {ScholarshipId}", id);
+            throw;
+        }
 
         // 2. Remove o arquivo físico da imagem (após confirmar o commit no banco)
         if (!string.IsNullOrWhiteSpace(scholarship.ImageUrl))

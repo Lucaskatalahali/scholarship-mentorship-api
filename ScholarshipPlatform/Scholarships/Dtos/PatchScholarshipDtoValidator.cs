@@ -75,13 +75,15 @@ public class PatchScholarshipDtoValidator : AbstractValidator<PatchScholarshipDt
         // 5. Níveis de ensino
         When(s => s.Levels is not null, () =>
         {
-            RuleFor(s => s.Levels)
-                .NotEmpty()
-                .WithMessage("Se fornecida, a lista de níveis não pode ser vazia.");
-
-            RuleForEach(s => s.Levels!)
-                .IsInEnum()
-                .WithMessage("Nível acadêmico inválido.");
+            RuleFor(x => x.Levels)
+                .Must(levels =>
+                    !string.IsNullOrWhiteSpace(levels) &&
+                    levels.Split(',', StringSplitOptions.TrimEntries)
+                        .All(level =>
+                            Enum.TryParse<ScholarshipLevel>(
+                                level, true, out var parsed)
+                            && Enum.IsDefined(parsed)))
+                .WithMessage("Os níveis acadêmicos são inválidos ou estão vazios.");
         });
 
         // 6. Benefícios

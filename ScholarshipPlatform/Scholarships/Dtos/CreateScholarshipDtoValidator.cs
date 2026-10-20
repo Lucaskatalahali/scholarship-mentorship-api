@@ -47,10 +47,16 @@ public class CreateScholarshipDtoValidator : AbstractValidator<CreateScholarship
             .WithMessage("Tipo de bolsa inválido. Deve ser Total ou Parcial.");
 
         // 3. Níveis de ensino (Levels)
-        RuleFor(s => s.Levels)
+        RuleFor(x => x.Levels)
             .NotEmpty()
-            .WithMessage("A bolsa deve aceitar ao menos um nível de ensino.")
-            .ForEach(level => level.IsInEnum().WithMessage("Nível acadêmico inválido."));
+            .WithMessage("A bolsa deve ter pelo menos um nível de ensino.")
+            .Must(levels =>
+                levels.Split(',', StringSplitOptions.TrimEntries)
+                    .All(level =>
+                        Enum.TryParse<ScholarshipLevel>(
+                            level, true, out var parsed)
+                        && Enum.IsDefined(parsed)))
+            .WithMessage("Um ou mais níveis acadêmicos são inválidos.");
 
         // 4. Listas de marcadores (Benefits, Eligibility, RequiredDocuments)
         RuleFor(s => s.Benefits)

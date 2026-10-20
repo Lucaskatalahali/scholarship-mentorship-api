@@ -23,6 +23,21 @@ namespace ScholarshipPlatform.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CourseScholarship", b =>
+                {
+                    b.Property<int>("CoursesId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ScholarshipId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CoursesId", "ScholarshipId");
+
+                    b.HasIndex("ScholarshipId");
+
+                    b.ToTable("ScholarshipCourses", (string)null);
+                });
+
             modelBuilder.Entity("CourseScholarshipApplication", b =>
                 {
                     b.Property<int>("ScholarshipApplicationId")
@@ -197,12 +212,7 @@ namespace ScholarshipPlatform.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("ScholarshipId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ScholarshipId");
 
                     b.ToTable("Courses");
                 });
@@ -429,9 +439,9 @@ namespace ScholarshipPlatform.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<string>>("Levels")
+                    b.Property<string>("Levels")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -664,6 +674,21 @@ namespace ScholarshipPlatform.Migrations
                     b.ToTable("UserDocuments");
                 });
 
+            modelBuilder.Entity("CourseScholarship", b =>
+                {
+                    b.HasOne("ScholarshipPlatform.Courses.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CoursesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ScholarshipPlatform.Scholarships.Scholarship", null)
+                        .WithMany()
+                        .HasForeignKey("ScholarshipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CourseScholarshipApplication", b =>
                 {
                     b.HasOne("ScholarshipPlatform.ScholarshipApplications.ScholarshipApplication", null)
@@ -745,13 +770,6 @@ namespace ScholarshipPlatform.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ScholarshipPlatform.Courses.Course", b =>
-                {
-                    b.HasOne("ScholarshipPlatform.Scholarships.Scholarship", null)
-                        .WithMany("Courses")
-                        .HasForeignKey("ScholarshipId");
-                });
-
             modelBuilder.Entity("ScholarshipPlatform.Feedbacks.Feedback", b =>
                 {
                     b.HasOne("ScholarshipPlatform.Users.User", null)
@@ -809,11 +827,6 @@ namespace ScholarshipPlatform.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ScholarshipPlatform.Scholarships.Scholarship", b =>
-                {
-                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }

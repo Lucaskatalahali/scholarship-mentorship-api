@@ -11,6 +11,7 @@ using ScholarshipPlatform.Users;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScholarshipPlatform.SuccessStories;
+using System.Text.Json;
 
 namespace ScholarshipPlatform.Data;
 
@@ -35,29 +36,40 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
         base.OnModelCreating(builder);
 
         // 1. Configurações da Bolsa (Scholarship)
-        
-
         builder.Entity<Scholarship>(entity =>
         {
-            entity.Property(s => s.ScholarshipType)
-                .HasConversion<string>()
-                .HasMaxLength(50);
+        entity.Property(s => s.ScholarshipType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
-            var levelsConverter = new ValueConverter<List<ScholarshipLevel>, List<string>>(
-                v => v.Select(e => e.ToString()).ToList(),
-                v => v.Select(e => Enum.Parse<ScholarshipLevel>(e)).ToList()
+            var levelsConverter = new ValueConverter<List<ScholarshipLevel>, string>(
+                v => JsonSerializer.Serialize(
+                    v.Select(e => e.ToString()).ToList(),
+                    (JsonSerializerOptions?)null
+                ),
+                v => (JsonSerializer.Deserialize<List<string>>(
+                        v, (JsonSerializerOptions?)null) ?? new())
+                    .Select(e => Enum.Parse<ScholarshipLevel>(e))
+                    .ToList()
             );
 
             var levelsComparer = new ValueComparer<List<ScholarshipLevel>>(
-                (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
-                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c.ToList()
+                (a, b) => a != null && b != null && a.SequenceEqual(b),
+                v => v.Aggregate(0, (hash, item) =>
+                    HashCode.Combine(hash, item.GetHashCode())),
+                v => v.ToList()
             );
 
             entity.Property(s => s.Levels)
                 .HasConversion(levelsConverter)
                 .Metadata.SetValueComparer(levelsComparer);
         });
+
+        // Relação Many-to-Many entre bolsas e cursos
+        builder.Entity<Scholarship>()
+            .HasMany(s => s.Courses)
+            .WithMany()
+            .UsingEntity(j => j.ToTable("ScholarshipCourses"));
 
         // 2. Configurações da Candidatura (ScholarshipApplication)
         builder.Entity<ScholarshipApplication>(entity =>

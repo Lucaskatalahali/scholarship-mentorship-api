@@ -18,7 +18,7 @@ public class CreateScholarshipDto
     public List<string> Benefits { get; set; } = [];
     public List<string> RequiredDocuments { get; set; } = [];
     public List<string> Eligibility { get; set; } = [];
-    public List<ScholarshipLevel> Levels { get; set; } = [];
+    public string Levels { get; set; } = "";
 
     // Relacionamento com cursos existentes
     public List<int> CourseIds { get; set; } = [];
