@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using scholarshipPlatform.Authentication;
 using ScholarshipPlatform.Authentication.Dtos;
 using ScholarshipPlatform.Data;
 using ScholarshipPlatform.Email;
@@ -29,38 +30,58 @@ public class AuthenticationService
         _logger = logger;
     }
     
-    public async Task<LoginResponseDto?> Login(LoginDto dto)
+    public async Task<LoginResult> Login(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
 
         if (user is null)
         {
-            _logger.LogWarning("Tentativa de login com e-mail inexistente: {Email}", dto.Email);
-            return null;
+            _logger.LogWarning(
+                "Tentativa de login com e-mail inexistente: {Email}",
+                dto.Email);
+
+            return new LoginResult(null, LoginError.InvalidCredentials);
+        }
+
+        // Verificar a palavra-passe antes de revelar o estado da conta.
+        if (!await _userManager.CheckPasswordAsync(user, dto.Password))
+        {
+            _logger.LogWarning(
+                "Tentativa de login com senha incorreta para o usuário {UserId}",
+                user.Id);
+
+            return new LoginResult(null, LoginError.InvalidCredentials);
         }
 
         if (!await _userManager.IsEmailConfirmedAsync(user))
         {
-            _logger.LogWarning("Login bloqueado: E-mail não confirmado para o usuário {UserId} ({Email})", user.Id, user.Email);
-            return null;
+            _logger.LogWarning(
+                "Login bloqueado: e-mail não confirmado para o usuário {UserId}",
+                user.Id);
+
+            return new LoginResult(null, LoginError.EmailNotConfirmed);
         }
 
         if (user.AccountStatus == AccountStatus.RegistrationPending)
         {
-            _logger.LogWarning("Login bloqueado: Conta com registro pendente de aprovação para o usuário {UserId}", user.Id);
-            return null;
+            _logger.LogWarning(
+                "Login bloqueado: registro pendente para o usuário {UserId}",
+                user.Id);
+
+            return new LoginResult(null, LoginError.RegistrationPending);
         }
 
-        if (!await _userManager.CheckPasswordAsync(user, dto.Password))
+        if (user.AccountStatus is AccountStatus.SuspendedByDebt
+            or AccountStatus.SuspendedVoluntarily)
         {
-            _logger.LogWarning("Tentativa de login com senha incorreta para o usuário {UserId} ({Email})", user.Id, user.Email);
-            return null;
+            _logger.LogWarning(
+                "Login bloqueado: conta suspensa para o usuário {UserId}",
+                user.Id);
+
+            return new LoginResult(null, LoginError.AccountSuspended);
         }
 
-    var roles = await _userManager.GetRolesAsync(user);
-
-        _logger.LogInformation("Usuário {UserId} ({Email}) autenticado com sucesso. Roles: {Roles}", 
-            user.Id, user.Email, string.Join(", ", roles));
+        var roles = await _userManager.GetRolesAsync(user);
 
         var token = _tokenService.GenerateToken(user, roles);
 
@@ -76,7 +97,14 @@ public class AuthenticationService
             user.AccountStatus
         );
 
-        return new LoginResponseDto(token, userDto);
+        var response = new LoginResponseDto(token, userDto);
+
+        _logger.LogInformation(
+            "Usuário {UserId} autenticado com sucesso. Roles: {Roles}",
+            user.Id,
+            string.Join(", ", roles));
+
+        return new LoginResult(response, LoginError.None);
     }
 
     public async Task<bool> ConfirmEmail(int userId, string token)

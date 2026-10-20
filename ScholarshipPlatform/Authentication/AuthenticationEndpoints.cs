@@ -1,3 +1,4 @@
+using scholarshipPlatform.Authentication;
 using ScholarshipPlatform.Authentication.Dtos;
 
 namespace ScholarshipPlatform.Authentication;
@@ -22,21 +23,51 @@ public static class AuthenticationEndpoints
         return group;
     }
 
+    
     private static async Task<IResult> Login(
-        LoginDto dto, 
+        LoginDto dto,
         LoginDtoValidator validator,
         AuthenticationService authenticationService)
     {
         var validationResult = await validator.ValidateAsync(dto);
 
         if (!validationResult.IsValid)
-            return TypedResults.ValidationProblem(validationResult.ToDictionary());
-            
-        var loginResult = await authenticationService.Login(dto);
+        {
+            return TypedResults.ValidationProblem(
+                validationResult.ToDictionary());
+        }
 
-            return loginResult is null
-                ? TypedResults.Unauthorized()
-                : TypedResults.Ok(loginResult);
+        var result = await authenticationService.Login(dto);
+
+        return result.Error switch
+        {
+            LoginError.InvalidCredentials =>
+                TypedResults.Unauthorized(),
+
+            LoginError.EmailNotConfirmed =>
+                TypedResults.Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "E-mail não confirmado",
+                    detail: "Confirme o seu e-mail antes de iniciar sessão."),
+
+            LoginError.RegistrationPending =>
+                TypedResults.Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Registo pendente",
+                    detail: "O seu registo ainda está pendente de aprovação."),
+
+            LoginError.AccountSuspended =>
+                TypedResults.Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Conta suspensa",
+                    detail: "A sua conta está suspensa. Contacte o suporte."),
+
+            LoginError.None when result.Response is not null =>
+                TypedResults.Ok(result.Response),
+
+            _ => TypedResults.StatusCode(
+                StatusCodes.Status500InternalServerError)
+        };
     }
 
     private static async Task<IResult> ConfirmEmail(
